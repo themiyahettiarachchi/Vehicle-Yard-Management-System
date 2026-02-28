@@ -1,0 +1,14 @@
+# GitHub Copilot instructions
+.github/
+
+# Project memory file
+MEMORY.md
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
