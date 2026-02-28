@@ -174,7 +174,7 @@
                         <div class="form-group">
                             <label class="form-label">Buyer Type</label>
                             <select class="form-control" name="buyerType" required>
-                                <option value="Regular Customer">Regular Customer</option>
+                                <option value="Regular">Regular Customer</option>
                                 <option value="Export">Export</option>
                                 <option value="Auction">Auction</option>
                             </select>
@@ -252,39 +252,33 @@
             }
         }
 
-        // Form submission handler (frontend only - shows alert)
+        // Form submission handler - validates then submits to server
         document.getElementById('saleForm').addEventListener('submit', function (e) {
-            e.preventDefault();
-
             const formData = new FormData(this);
             const data = Object.fromEntries(formData.entries());
 
             if (!data.vehicleId) {
+                e.preventDefault();
                 alert('Please select a vehicle.');
                 return;
             }
             if (!data.salePrice || parseFloat(data.salePrice) <= 0) {
+                e.preventDefault();
                 alert('Please enter a valid sale price.');
                 return;
             }
             if (!data.customerName.trim()) {
+                e.preventDefault();
                 alert('Please enter the customer name.');
                 return;
             }
             if (!data.contactNumber.trim()) {
+                e.preventDefault();
                 alert('Please enter the contact number.');
                 return;
             }
 
-            alert('Sale recorded successfully!\n\nVehicle ID: ' + data.vehicleId +
-                '\nBuyer Type: ' + data.buyerType +
-                '\nSale Price: $' + data.salePrice +
-                '\nCustomer: ' + data.customerName +
-                '\nContact: ' + data.contactNumber +
-                '\nEmail: ' + (data.email || 'N/A') +
-                '\n\n(Backend integration pending)');
-
-            closeModal();
+            // Validation passed - form will submit naturally to the server
         });
     </script>
 </body>

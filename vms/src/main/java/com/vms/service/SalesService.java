@@ -81,6 +81,33 @@ public class SalesService {
         return Arrays.asList(120000, 135000, 135000, 160000, 185000, 175000);
     }
 
+    @org.springframework.transaction.annotation.Transactional
+    public Sale recordSale(Integer vehicleId, String saleType, BigDecimal salePrice,
+            String customerName, String customerPhone) {
+        Vehicle vehicle = vehicleRepository.findById(vehicleId)
+                .orElseThrow(() -> new RuntimeException("Vehicle not found with ID: " + vehicleId));
+
+        if (!"Available".equals(vehicle.getStatus())) {
+            throw new RuntimeException("Vehicle is not available for sale.");
+        }
+
+        Sale sale = new Sale();
+        sale.setVehicle(vehicle);
+        sale.setSaleType(saleType);
+        sale.setSalePrice(salePrice);
+        sale.setCustomerName(customerName);
+        sale.setCustomerPhone(customerPhone);
+        sale.setSaleDate(java.time.LocalDateTime.now());
+
+        Sale savedSale = saleRepository.save(sale);
+
+        // Update vehicle status to Sold
+        vehicle.setStatus("Sold");
+        vehicleRepository.save(vehicle);
+
+        return savedSale;
+    }
+
     public List<ActivityFeedItem> getActivityFeed() {
         List<ActivityFeedItem> feed = new ArrayList<>();
         List<Sale> recentSales = saleRepository.findAllByOrderBySaleDateDesc();
