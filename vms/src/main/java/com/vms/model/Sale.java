@@ -1,43 +1,52 @@
 package com.vms.model;
 
+import jakarta.persistence.*;
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
+@Entity
+@Table(name = "Sales")
 public class Sale {
-    private Long id;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "SaleID")
+    private Integer saleId;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "VehicleID", nullable = false)
     private Vehicle vehicle;
-    private String buyerType; // Regular Customer, Export, Auction
+
+    @Column(name = "CustomerName", length = 100)
     private String customerName;
-    private String contactNumber;
-    private String email;
+
+    @Column(name = "CustomerPhone", length = 20)
+    private String customerPhone;
+
+    @Column(name = "SaleType", length = 50)
+    private String saleType; // Regular, Export, Auction
+
+    @Column(name = "SalePrice", precision = 15, scale = 2)
     private BigDecimal salePrice;
-    private LocalDate saleDate;
-    private String status; // Finalized, Pending
+
+    @Column(name = "SaleDate")
+    private LocalDateTime saleDate;
 
     public Sale() {
     }
 
-    public Sale(Long id, Vehicle vehicle, String buyerType, String customerName,
-            String contactNumber, String email, BigDecimal salePrice,
-            LocalDate saleDate, String status) {
-        this.id = id;
-        this.vehicle = vehicle;
-        this.buyerType = buyerType;
-        this.customerName = customerName;
-        this.contactNumber = contactNumber;
-        this.email = email;
-        this.salePrice = salePrice;
-        this.saleDate = saleDate;
-        this.status = status;
-    }
-
     // Getters and Setters
-    public Long getId() {
-        return id;
+    public Integer getSaleId() {
+        return saleId;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setSaleId(Integer saleId) {
+        this.saleId = saleId;
+    }
+
+    // Alias getter for templates that use getId()
+    public Integer getId() {
+        return saleId;
     }
 
     public Vehicle getVehicle() {
@@ -48,14 +57,6 @@ public class Sale {
         this.vehicle = vehicle;
     }
 
-    public String getBuyerType() {
-        return buyerType;
-    }
-
-    public void setBuyerType(String buyerType) {
-        this.buyerType = buyerType;
-    }
-
     public String getCustomerName() {
         return customerName;
     }
@@ -64,20 +65,30 @@ public class Sale {
         this.customerName = customerName;
     }
 
+    public String getCustomerPhone() {
+        return customerPhone;
+    }
+
+    public void setCustomerPhone(String customerPhone) {
+        this.customerPhone = customerPhone;
+    }
+
+    // Alias getter for templates that use getContactNumber()
     public String getContactNumber() {
-        return contactNumber;
+        return customerPhone;
     }
 
-    public void setContactNumber(String contactNumber) {
-        this.contactNumber = contactNumber;
+    public String getSaleType() {
+        return saleType;
     }
 
-    public String getEmail() {
-        return email;
+    public void setSaleType(String saleType) {
+        this.saleType = saleType;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    // Alias getter for templates that use getBuyerType()
+    public String getBuyerType() {
+        return saleType;
     }
 
     public BigDecimal getSalePrice() {
@@ -88,19 +99,21 @@ public class Sale {
         this.salePrice = salePrice;
     }
 
-    public LocalDate getSaleDate() {
+    public LocalDateTime getSaleDate() {
         return saleDate;
     }
 
-    public void setSaleDate(LocalDate saleDate) {
+    public void setSaleDate(LocalDateTime saleDate) {
         this.saleDate = saleDate;
     }
 
+    // Alias: templates may expect a status field
     public String getStatus() {
-        return status;
+        return "Finalized";
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    // Alias: templates may expect an email field
+    public String getEmail() {
+        return null;
     }
 }

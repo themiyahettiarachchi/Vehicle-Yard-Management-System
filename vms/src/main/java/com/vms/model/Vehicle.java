@@ -1,49 +1,82 @@
 package com.vms.model;
 
+import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
+@Entity
+@Table(name = "Vehicles")
 public class Vehicle {
-    private Long id;
-    private String make;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "VehicleID")
+    private Integer vehicleId;
+
+    @Column(name = "Brand", length = 50, nullable = false)
+    private String brand;
+
+    @Column(name = "Model", length = 50, nullable = false)
     private String model;
+
+    @Column(name = "Year", nullable = false)
     private int year;
-    private String plateNumber;
+
+    @Column(name = "PurchasePrice", precision = 15, scale = 2, nullable = false)
     private BigDecimal purchasePrice;
-    private BigDecimal repairCost;
-    private BigDecimal totalInvestment;
-    private String status; // AVAILABLE, SOLD
+
+    @Column(name = "SellingPrice", precision = 15, scale = 2, nullable = false)
+    private BigDecimal sellingPrice;
+
+    @Column(name = "Status", length = 50, nullable = false)
+    private String status; // Available, Under Repair, Sold
+
+    @Column(name = "ChassisNumber", length = 50)
+    private String chassisNumber;
+
+    @Column(name = "DateAdded")
+    private LocalDateTime dateAdded;
 
     public Vehicle() {
     }
 
-    public Vehicle(Long id, String make, String model, int year, String plateNumber,
-            BigDecimal purchasePrice, BigDecimal repairCost, BigDecimal totalInvestment, String status) {
-        this.id = id;
-        this.make = make;
+    public Vehicle(Integer vehicleId, String brand, String model, int year,
+            BigDecimal purchasePrice, BigDecimal sellingPrice, String status, String chassisNumber) {
+        this.vehicleId = vehicleId;
+        this.brand = brand;
         this.model = model;
         this.year = year;
-        this.plateNumber = plateNumber;
         this.purchasePrice = purchasePrice;
-        this.repairCost = repairCost;
-        this.totalInvestment = totalInvestment;
+        this.sellingPrice = sellingPrice;
         this.status = status;
+        this.chassisNumber = chassisNumber;
     }
 
     // Getters and Setters
-    public Long getId() {
-        return id;
+    public Integer getVehicleId() {
+        return vehicleId;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setVehicleId(Integer vehicleId) {
+        this.vehicleId = vehicleId;
     }
 
+    // Alias getter for templates that use getId()
+    public Integer getId() {
+        return vehicleId;
+    }
+
+    public String getBrand() {
+        return brand;
+    }
+
+    public void setBrand(String brand) {
+        this.brand = brand;
+    }
+
+    // Alias getter for templates that use getMake()
     public String getMake() {
-        return make;
-    }
-
-    public void setMake(String make) {
-        this.make = make;
+        return brand;
     }
 
     public String getModel() {
@@ -62,14 +95,6 @@ public class Vehicle {
         this.year = year;
     }
 
-    public String getPlateNumber() {
-        return plateNumber;
-    }
-
-    public void setPlateNumber(String plateNumber) {
-        this.plateNumber = plateNumber;
-    }
-
     public BigDecimal getPurchasePrice() {
         return purchasePrice;
     }
@@ -78,20 +103,12 @@ public class Vehicle {
         this.purchasePrice = purchasePrice;
     }
 
-    public BigDecimal getRepairCost() {
-        return repairCost;
+    public BigDecimal getSellingPrice() {
+        return sellingPrice;
     }
 
-    public void setRepairCost(BigDecimal repairCost) {
-        this.repairCost = repairCost;
-    }
-
-    public BigDecimal getTotalInvestment() {
-        return totalInvestment;
-    }
-
-    public void setTotalInvestment(BigDecimal totalInvestment) {
-        this.totalInvestment = totalInvestment;
+    public void setSellingPrice(BigDecimal sellingPrice) {
+        this.sellingPrice = sellingPrice;
     }
 
     public String getStatus() {
@@ -102,11 +119,43 @@ public class Vehicle {
         this.status = status;
     }
 
+    public String getChassisNumber() {
+        return chassisNumber;
+    }
+
+    public void setChassisNumber(String chassisNumber) {
+        this.chassisNumber = chassisNumber;
+    }
+
+    public LocalDateTime getDateAdded() {
+        return dateAdded;
+    }
+
+    public void setDateAdded(LocalDateTime dateAdded) {
+        this.dateAdded = dateAdded;
+    }
+
+    // Alias getter for templates that use getPlateNumber()
+    public String getPlateNumber() {
+        return chassisNumber;
+    }
+
+    // Alias for totalInvestment (same as purchasePrice for now)
+    public BigDecimal getTotalInvestment() {
+        return purchasePrice;
+    }
+
+    // Alias for repairCost (returns 0 by default - actual repair cost comes from
+    // Repairs table)
+    public BigDecimal getRepairCost() {
+        return BigDecimal.ZERO;
+    }
+
     public String getDisplayName() {
-        return make + " " + model + " " + year;
+        return brand + " " + model + " " + year;
     }
 
     public String getDisplayNameWithPlate() {
-        return make + " " + model + " " + year + " - " + plateNumber;
+        return brand + " " + model + " " + year + (chassisNumber != null ? " - " + chassisNumber : "");
     }
 }
