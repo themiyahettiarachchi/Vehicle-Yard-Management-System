@@ -175,3 +175,6 @@ coverage/
 *.bak
 *.orig
 *.rej
+
+### Custom ###
+assets/
