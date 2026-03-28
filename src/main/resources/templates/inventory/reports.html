@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Inventory Report - VYMS</title>
+    <link rel="stylesheet" th:href="@{/css/inventory.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ── Stat Cards ─────────────────────────────────────── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .stat-card {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 1px 6px rgba(0,0,0,.08);
+            padding: 20px 22px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .stat-icon {
+            width: 44px; height: 44px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; flex-shrink: 0;
+        }
+        .icon-blue   { background:#eff6ff; color:#3b82f6; }
+        .icon-green  { background:#f0fdf4; color:#10b981; }
+        .icon-red    { background:#fef2f2; color:#ef4444; }
+        .icon-amber  { background:#fffbeb; color:#d97706; }
+        .icon-purple { background:#f5f3ff; color:#6366f1; }
+        .stat-label { font-size:12px; color:#64748b; font-weight:600; text-transform:uppercase; letter-spacing:.4px; }
+        .stat-value { font-size:22px; font-weight:800; color:#1e293b; margin-top:2px; }
+
+        /* ── Table Card ─────────────────────────────────────── */
+        .report-card {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 1px 6px rgba(0,0,0,.08);
+            overflow: hidden;
+            margin-bottom: 28px;
+        }
+        .report-header {
+            padding: 18px 22px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .report-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        thead th {
+            background: #f8fafc;
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        tbody td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #1e293b;
+            vertical-align: middle;
+        }
+        tbody tr:last-child td { border-bottom: none; }
+        tbody tr:hover { background: #f8fafc; }
+        .badge-sold   { background:#dcfce7; color:#15803d; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600; }
+        .badge-unsold { background:#fef3c7; color:#b45309; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600; }
+        .text-muted { color: #64748b; font-size: 13px; }
+    </style>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>Vehicle Yard</h2>
+            <p>Management System</p>
+        </div>
+        <div class="sidebar-user">
+            <div class="user-avatar">IL</div>
+            <div class="user-info">
+                <h3>Inventory Lead</h3>
+                <p>Inventory</p>
+            </div>
+        </div>
+        <ul class="nav-links">
+            <li class="nav-item">
+                <a th:href="@{/inventory}" class="nav-link">
+                    <i class="fas fa-th-large"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a th:href="@{/inventory/vehicles}" class="nav-link">
+                    <i class="fas fa-car"></i> Vehicle Inventory
+                </a>
+            </li>
+            <li class="nav-item">
+                <a th:href="@{/inventory/reports}" class="nav-link active">
+                    <i class="fas fa-file-alt"></i> Reports
+                </a>
+            </li>
+        </ul>
+        <div class="sidebar-footer">
+            <a th:href="@{/login}" class="nav-link">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Inventory Report</h1>
+                <p>Stock overview and vehicle details</p>
+            </div>
+            <a th:href="@{/inventory/reports/download}" class="btn btn-primary" style="text-decoration:none; white-space:nowrap;">
+                <i class="fas fa-file-pdf"></i> Download PDF
+            </a>
+        </div>
+
+        <!-- Summary Stat Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon icon-blue"><i class="fas fa-car"></i></div>
+                <div>
+                    <div class="stat-label">Total Vehicles</div>
+                    <div class="stat-value" th:text="${totalVehicles}">0</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon icon-amber"><i class="fas fa-car-side"></i></div>
+                <div>
+                    <div class="stat-label">In Stock</div>
+                    <div class="stat-value" th:text="${unsoldCount}">0</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon icon-green"><i class="fas fa-check-circle"></i></div>
+                <div>
+                    <div class="stat-label">Sold</div>
+                    <div class="stat-value" th:text="${soldCount}">0</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon icon-purple"><i class="fas fa-dollar-sign"></i></div>
+                <div>
+                    <div class="stat-label">Total Investment</div>
+                    <div class="stat-value" th:text="${'$' + totalInvestment}">$0</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon icon-green"><i class="fas fa-hand-holding-usd"></i></div>
+                <div>
+                    <div class="stat-label">Potential Revenue</div>
+                    <div class="stat-value" th:text="${'$' + potentialRevenue}">$0</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon icon-blue"><i class="fas fa-money-bill-wave"></i></div>
+                <div>
+                    <div class="stat-label">Revenue Realised</div>
+                    <div class="stat-value" th:text="${'$' + soldRevenue}">$0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vehicle Table -->
+        <div class="report-card">
+            <div class="report-header">
+                <span class="report-title"><i class="fas fa-list" style="color:#6366f1; margin-right:8px;"></i>Vehicle Stock List</span>
+                <span class="text-muted" th:text="${totalVehicles} + ' vehicles total'">0 vehicles total</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Model</th>
+                        <th>Chassis No.</th>
+                        <th>License Plate</th>
+                        <th>Purchase Price</th>
+                        <th>Repair Cost</th>
+                        <th>Sale Price</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="v : ${vehicles}">
+                        <td>
+                            <div style="font-weight:600;" th:text="${v.vehicleModel != null ? v.vehicleModel : '--'}">Model</div>
+                        </td>
+                        <td class="text-muted" th:text="${v.chassisNumber != null ? v.chassisNumber : '--'}">CH-0001</td>
+                        <td th:text="${v.licensePlate != null ? v.licensePlate : '--'}">ABC-1234</td>
+                        <td th:text="${v.purchasePrice != null ? '$' + v.purchasePrice : '--'}">$0</td>
+                        <td th:text="${v.repairCost != null ? '$' + v.repairCost : '$0'}">$0</td>
+                        <td th:text="${v.salePrice != null ? '$' + v.salePrice : '--'}">--</td>
+                        <td>
+                            <span th:if="${v.status == 'SOLD'}"   class="badge-sold">SOLD</span>
+                            <span th:if="${v.status != 'SOLD'}"   class="badge-unsold">UNSOLD</span>
+                        </td>
+                    </tr>
+                    <tr th:if="${vehicles == null or vehicles.empty}">
+                        <td colspan="7" style="text-align:center; color:#64748b; padding:40px;">
+                            <i class="fas fa-car" style="font-size:32px; display:block; margin-bottom:10px; opacity:0.3;"></i>
+                            No vehicles found.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+</body>
+
+</html>

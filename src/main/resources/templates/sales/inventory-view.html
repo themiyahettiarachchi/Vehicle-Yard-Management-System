@@ -1,0 +1,109 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Vehicle Inventory - VYMS</title>
+    <link rel="stylesheet" th:href="@{/css/sales.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>Vehicle Yard</h2>
+            <p>Management System</p>
+        </div>
+        <div class="sidebar-user">
+            <div class="user-avatar">SL</div>
+            <div class="user-info">
+                <h3>Sales Lead</h3>
+                <p>Sales</p>
+            </div>
+        </div>
+        <ul class="nav-links">
+            <li class="nav-item"><a th:href="@{/sales-dashboard}" class="nav-link"><i class="fas fa-th-large"></i>
+                    Dashboard</a></li>
+            <li class="nav-item"><a th:href="@{/sales-dashboard/sales}" class="nav-link"><i
+                        class="fas fa-shopping-cart"></i> Sales</a></li>
+            <li class="nav-item"><a th:href="@{/sales-dashboard/inventory}" class="nav-link active"><i
+                        class="fas fa-car"></i> Inventory</a></li>
+        </ul>
+        <div class="sidebar-footer"><a th:href="@{/login}" class="nav-link"><i class="fas fa-sign-out-alt"></i>
+                Logout</a></div>
+    </aside>
+
+    <main class="main-content">
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Vehicle Inventory</h1>
+                <p>Browse available vehicles for sale</p>
+            </div>
+        </div>
+
+        <!-- Search -->
+        <div
+            style="background:var(--bg-card); border-radius:10px; border:1px solid var(--border); padding:12px 20px; display:flex; align-items:center; gap:12px; margin-bottom:24px;">
+            <i class="fas fa-search" style="color:var(--text-muted);"></i>
+            <input type="text" id="searchInput" placeholder="Search by model, chassis, or plate..."
+                style="border:none; outline:none; font-size:14px; flex-grow:1;" oninput="filterCards()">
+        </div>
+
+        <!-- Vehicle Cards -->
+        <div class="vehicles-grid" id="vehiclesGrid">
+            <div th:each="vehicle : ${vehicles}" class="vehicle-card" th:attr="data-model=${vehicle.vehicleModel != null ? vehicle.vehicleModel.toLowerCase() : ''},
+                           data-chassis=${vehicle.chassisNumber != null ? vehicle.chassisNumber.toLowerCase() : ''},
+                           data-plate=${vehicle.licensePlate != null ? vehicle.licensePlate.toLowerCase() : ''}">
+
+                <div class="vehicle-image-container">
+                    <img th:if="${vehicle.imagePath != null and !vehicle.imagePath.isEmpty()}"
+                        th:src="${vehicle.imagePath}" alt="Vehicle">
+                    <div th:unless="${vehicle.imagePath != null and !vehicle.imagePath.isEmpty()}"
+                        class="vehicle-img-placeholder"><i class="fas fa-car"></i></div>
+                    <span class="status-badge"
+                        th:classappend="${vehicle.status != null and vehicle.status.equalsIgnoreCase('SOLD')} ? 'badge-sold-img' : 'badge-unsold-img'"
+                        th:text="${vehicle.status != null ? vehicle.status : 'Unsold'}">Status</span>
+                </div>
+                <div class="vehicle-details">
+                    <h3 th:text="${vehicle.vehicleModel != null ? vehicle.vehicleModel : 'Unknown Model'}">Model</h3>
+                    <div class="detail-row">Chassis: <span
+                            th:text="${vehicle.chassisNumber != null ? vehicle.chassisNumber : '-'}">CH</span></div>
+                    <div class="detail-row">Plate: <span style="color:var(--text-main);"
+                            th:text="${vehicle.licensePlate != null ? vehicle.licensePlate : '-'}">Plate</span></div>
+                    <div class="detail-row">Purchase: <span style="color:var(--text-muted);"
+                            th:text="${vehicle.purchasePrice != null ? '$' + vehicle.purchasePrice : '-'}">$0</span>
+                    </div>
+                    <div class="detail-row"
+                        th:if="${vehicle.repairCost != null and vehicle.repairCost.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
+                        Repairs: <span style="color:var(--danger);" th:text="'$' + ${vehicle.repairCost}">$0</span>
+                    </div>
+                    <div class="detail-row price" th:if="${vehicle.salePrice != null}">
+                        Listed Price: <span th:text="'$' + ${vehicle.salePrice}">$0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${#lists.isEmpty(vehicles)}"
+                style="grid-column:1/-1; text-align:center; padding:60px; color:var(--text-muted);">
+                <i class="fas fa-car" style="font-size:48px; margin-bottom:16px; display:block; opacity:0.3;"></i>
+                <p style="font-size:18px; font-weight:600; margin-bottom:8px;">No vehicles in inventory</p>
+                <p>The inventory team needs to add vehicles first.</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function filterCards() {
+            const q = document.getElementById('searchInput').value.toLowerCase();
+            document.querySelectorAll('#vehiclesGrid .vehicle-card').forEach(card => {
+                const model = card.dataset.model || '';
+                const chassis = card.dataset.chassis || '';
+                const plate = card.dataset.plate || '';
+                card.style.display = (!q || model.includes(q) || chassis.includes(q) || plate.includes(q)) ? '' : 'none';
+            });
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,504 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Vehicle - VYMS</title>
+    <link rel="stylesheet" th:href="@{/css/inventory.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>Vehicle Yard</h2>
+            <p>Management System</p>
+        </div>
+        <div class="sidebar-user">
+            <div class="user-avatar">IL</div>
+            <div class="user-info">
+                <h3>Inventory Lead</h3>
+                <p>Inventory</p>
+            </div>
+        </div>
+        <ul class="nav-links">
+            <li class="nav-item">
+                <a th:href="@{/inventory}" class="nav-link">
+                    <i class="fas fa-th-large"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a th:href="@{/inventory/vehicles}" class="nav-link active">
+                    <i class="fas fa-car"></i> Vehicle Inventory
+                </a>
+            </li>
+        </ul>
+        <div class="sidebar-footer">
+            <a th:href="@{/login}" class="nav-link">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Edit Vehicle</h1>
+                <p>Update the vehicle details below.</p>
+            </div>
+            <a th:href="@{/inventory/vehicles}" class="btn btn-outline" style="text-decoration:none;">
+                <i class="fas fa-arrow-left"></i> Back to Inventory
+            </a>
+        </div>
+
+        <form th:action="@{/inventory/vehicles/edit/{id}(id=${vehicle.id})}" method="post"
+            enctype="multipart/form-data">
+            <div style="display: grid; grid-template-columns: 300px 1fr; gap: 24px; align-items: start;">
+
+                <!-- Image Panel -->
+                <div>
+                    <div class="edit-card" style="padding: 20px;">
+                        <p class="form-label" style="margin-bottom: 12px;">Vehicle Image</p>
+
+                        <!-- Image preview -->
+                        <img th:if="${vehicle.imagePath != null and !vehicle.imagePath.isEmpty()}"
+                            th:src="${vehicle.imagePath}" class="image-preview" id="imgPreview" alt="Vehicle Image">
+                        <div th:unless="${vehicle.imagePath != null and !vehicle.imagePath.isEmpty()}"
+                            class="image-preview-placeholder" id="imgPlaceholder">
+                            <i class="fas fa-car"></i>
+                        </div>
+                        <img style="display:none;" id="imgPreviewNew" class="image-preview" alt="New Image Preview">
+
+                        <!-- Hidden file input -->
+                        <input type="file" name="imageFile" id="imageFileInput" accept="image/*" style="display:none;"
+                            onchange="previewImage(event)">
+
+                        <!-- Browse + Search buttons -->
+                        <div style="display: flex; gap: 10px; margin-top: 10px;">
+                            <button type="button" class="btn btn-outline" style="flex:1; justify-content:center;"
+                                onclick="document.getElementById('imageFileInput').click()">
+                                <i class="fas fa-folder-open"></i> Browse
+                            </button>
+                            <button type="button" class="btn btn-outline" style="flex:1; justify-content:center;"
+                                id="searchBtn" onclick="openImageSearch()">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                        </div>
+
+                        <p id="fileNameDisplay"
+                            style="margin-top: 8px; font-size: 12px; color: var(--text-muted); text-align: center;">
+                            No file selected
+                        </p>
+                        <p style="margin-top: 6px; font-size: 11px; color: #94a3b8; text-align: center;">
+                            Leave empty to keep the current image
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Details Panel -->
+                <div class="edit-card">
+                    <div class="form-row">
+                        <div class="form-group" style="margin-bottom:0">
+                            <label class="form-label">Chassis Number</label>
+                            <input type="text" name="chassisNumber" class="form-control"
+                                oninput="this.value = this.value.toUpperCase()"
+                                th:value="${vehicle.chassisNumber}" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0">
+                            <label class="form-label">License Plate</label>
+                            <input type="text" name="licensePlate" class="form-control"
+                                oninput="this.value = this.value.toUpperCase()"
+                                th:value="${vehicle.licensePlate}" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Vehicle Brand</label>
+                        <!-- Typeahead brand combobox -->
+                        <div class="brand-combobox" id="editBrandCombobox">
+                            <div class="brand-input-wrap">
+                                <input type="text" id="editBrandTyped" class="form-control brand-typed"
+                                    placeholder="Type brand name..." autocomplete="off" oninput="onEditBrandType(this)"
+                                    onkeydown="onEditBrandKey(event)" onfocus="onEditBrandFocus()"
+                                    onblur="onEditBrandBlur()">
+                                <span id="editBrandGhost" class="brand-ghost"></span>
+                            </div>
+                            <ul id="editBrandDropList" class="brand-drop-list" style="display:none;"></ul>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Model &amp; Year <span
+                                style="color:var(--text-muted);font-size:12px;">(e.g. Civic 2022)</span></label>
+                        <input type="text" id="editModelInput" class="form-control" placeholder="e.g., Supra-1997"
+                            oninput="editSyncVehicleModel()" onblur="formatEditModelInput()">
+                    </div>
+                    <!-- Combined hidden field submitted to server -->
+                    <input type="hidden" name="vehicleModel" id="editVehicleModelHidden"
+                        th:value="${vehicle.vehicleModel}">
+
+                    <div class="form-row">
+                        <div class="form-group" style="margin-bottom:0">
+                            <label class="form-label">Purchase Price ($)</label>
+                            <input type="number" name="purchasePrice" class="form-control" step="0.01"
+                                th:value="${vehicle.purchasePrice}">
+                        </div>
+                        <div class="form-group" style="margin-bottom:0">
+                            <label class="form-label">Repair Cost ($)</label>
+                            <input type="number" name="repairCost" class="form-control" step="0.01"
+                                th:value="${vehicle.repairCost}">
+                        </div>
+                    </div>
+
+                    <div class="form-row" style="margin-top: 16px;">
+                        <div class="form-group" style="margin-bottom:0">
+                            <label class="form-label">Sale Price ($)</label>
+                            <input type="number" name="salePrice" class="form-control" step="0.01"
+                                th:value="${vehicle.salePrice}">
+                        </div>
+                        <div class="form-group" style="margin-bottom:0">
+                            <label class="form-label">Status</label>
+                            <select name="status" class="form-control">
+                                <option value="UNSOLD" th:selected="${vehicle.status == 'UNSOLD'}">Unsold</option>
+                                <option value="SOLD" th:selected="${vehicle.status == 'SOLD'}">Sold</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 28px; display: flex; gap: 12px;">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Update Vehicle
+                        </button>
+                        <a th:href="@{/inventory/vehicles/delete/{id}(id=${vehicle.id})}" class="btn btn-danger"
+                            style="text-decoration:none;"
+                            onclick="return confirm('Delete this vehicle? This action cannot be undone.')">
+                            <i class="fas fa-trash"></i> Delete Vehicle
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </main>
+
+    <!-- Image Search Modal -->
+    <div class="modal-overlay" id="imageSearchModal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <div>
+                    <h2 class="modal-title">Search Vehicle Image</h2>
+                    <p class="modal-subtitle">Enter a file path or URL to locate an image.</p>
+                </div>
+                <button class="modal-close" onclick="closeImageSearch()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">File Path or URL</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="imageSearchInput" class="form-control"
+                        placeholder="e.g., C:\Users\...\image.jpg or https://...">
+                    <button type="button" class="btn btn-primary" onclick="applyImageSearch()">Go</button>
+                </div>
+                <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">
+                    <i class="fas fa-info-circle"></i>
+                    To use a local file, click <strong>Browse</strong> instead to select it from your computer.
+                </p>
+            </div>
+            <div style="text-align: center; margin-top: 16px;">
+                <img id="searchPreviewImg" src="" alt=""
+                    style="display:none; max-height: 180px; border-radius: 8px; border: 1px solid var(--border); max-width: 100%;">
+                <p id="searchPreviewError" style="display:none; color: var(--danger); font-size: 13px;"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeImageSearch()">Cancel</button>
+                <button type="button" class="btn btn-primary" id="applySearchBtn" onclick="useSearchedImage()"
+                    style="display:none;">Use This Image</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===================== Brand Typeahead (Edit Page) =====================
+        const EDIT_BRANDS = [
+            'Acura', 'Alfa Romeo', 'Aston Martin', 'Audi',
+            'Bentley', 'BMW', 'Buick', 'BYD',
+            'Cadillac', 'Chevrolet', 'Chrysler',
+            'Dodge',
+            'Ferrari', 'Fiat', 'Ford',
+            'Geely', 'Genesis', 'GMC',
+            'Honda', 'Hyundai',
+            'Infiniti',
+            'Jaguar', 'Jeep',
+            'Kia',
+            'Lamborghini', 'Land Rover', 'Lexus', 'Lincoln',
+            'Maserati', 'Mazda', 'Mercedes-Benz', 'MG', 'Mini', 'Mitsubishi',
+            'Nissan',
+            'Peugeot', 'Porsche',
+            'Renault', 'Rolls-Royce',
+            'Seat', 'Skoda', 'SsangYong', 'Subaru', 'Suzuki',
+            'Tesla', 'Toyota',
+            'Volkswagen', 'Volvo'
+        ];
+
+        let editBrandConfirmed = '';
+        let editDropHighlight = -1;
+
+        function onEditBrandType(input) {
+            const val = input.value;
+            editBrandConfirmed = '';
+            editDropHighlight = -1;
+            const ghost = document.getElementById('editBrandGhost');
+
+            if (!val) {
+                ghost.textContent = '';
+                hideEditBrandDrop();
+                editSyncVehicleModel();
+                return;
+            }
+
+            const match = EDIT_BRANDS.find(b => b.toLowerCase().startsWith(val.toLowerCase()));
+            ghost.textContent = match ? val + match.slice(val.length) : val;
+
+            const filtered = EDIT_BRANDS.filter(b => b.toLowerCase().startsWith(val.toLowerCase()));
+            if (filtered.length > 0) {
+                buildEditDropList(filtered, val);
+            } else {
+                hideEditBrandDrop();
+            }
+            editSyncVehicleModel();
+        }
+
+        function onEditBrandKey(e) {
+            const input = document.getElementById('editBrandTyped');
+            const dropList = document.getElementById('editBrandDropList');
+            const items = dropList.querySelectorAll('li');
+
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (editDropHighlight >= 0 && items[editDropHighlight]) {
+                    selectEditBrand(items[editDropHighlight].dataset.brand);
+                } else {
+                    const ghost = document.getElementById('editBrandGhost').textContent;
+                    if (ghost) selectEditBrand(ghost);
+                    else if (input.value.trim()) selectEditBrand(input.value.trim());
+                }
+                return;
+            }
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (dropList.style.display === 'none') onEditBrandType(input);
+                editDropHighlight = Math.min(editDropHighlight + 1, items.length - 1);
+                updateEditDropHighlight(items);
+                return;
+            }
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                editDropHighlight = Math.max(editDropHighlight - 1, 0);
+                updateEditDropHighlight(items);
+                return;
+            }
+            if (e.key === 'Escape') hideEditBrandDrop();
+            if (e.key === 'Tab') {
+                const ghost = document.getElementById('editBrandGhost').textContent;
+                if (ghost && !editBrandConfirmed) {
+                    e.preventDefault();
+                    selectEditBrand(ghost);
+                }
+            }
+        }
+
+        function onEditBrandFocus() {
+            const input = document.getElementById('editBrandTyped');
+            if (input.value.trim()) onEditBrandType(input);
+        }
+
+        function onEditBrandBlur() {
+            setTimeout(() => {
+                hideEditBrandDrop();
+                if (!editBrandConfirmed) {
+                    const val = document.getElementById('editBrandTyped').value.trim();
+                    if (val) editBrandConfirmed = val;
+                }
+                editSyncVehicleModel();
+            }, 180);
+        }
+
+        function buildEditDropList(brands, typed) {
+            const list = document.getElementById('editBrandDropList');
+            list.innerHTML = '';
+            editDropHighlight = -1;
+            brands.forEach(brand => {
+                const li = document.createElement('li');
+                li.dataset.brand = brand;
+                li.innerHTML = '<strong>' + brand.slice(0, typed.length) + '</strong>' + brand.slice(typed.length);
+                li.addEventListener('mousedown', () => selectEditBrand(brand));
+                list.appendChild(li);
+            });
+            list.style.display = 'block';
+        }
+
+        function hideEditBrandDrop() {
+            document.getElementById('editBrandDropList').style.display = 'none';
+            editDropHighlight = -1;
+        }
+
+        function updateEditDropHighlight(items) {
+            items.forEach((li, i) => li.classList.toggle('active', i === editDropHighlight));
+            if (items[editDropHighlight]) items[editDropHighlight].scrollIntoView({ block: 'nearest' });
+        }
+
+        function selectEditBrand(brand) {
+            // Normalize: use known casing or Title Case
+            const known = EDIT_BRANDS.find(b => b.toLowerCase() === brand.toLowerCase());
+            editBrandConfirmed = known || editToTitleCase(brand);
+            document.getElementById('editBrandTyped').value = editBrandConfirmed;
+            document.getElementById('editBrandGhost').textContent = '';
+            hideEditBrandDrop();
+            editSyncVehicleModel();
+            document.getElementById('editModelInput').focus();
+        }
+
+        function editSyncVehicleModel() {
+            const raw = document.getElementById('editBrandTyped').value.trim();
+            const known = EDIT_BRANDS.find(b => b.toLowerCase() === raw.toLowerCase());
+            const brand = editBrandConfirmed
+                ? (EDIT_BRANDS.find(b => b.toLowerCase() === editBrandConfirmed.toLowerCase()) || editToTitleCase(editBrandConfirmed))
+                : (known || editToTitleCase(raw));
+            const model = editFormatModelYear(document.getElementById('editModelInput').value);
+            document.getElementById('editVehicleModelHidden').value =
+                brand && model ? brand + ' ' + model : (brand || model);
+        }
+
+        // ---- Formatting helpers ----
+        function editToTitleCase(str) {
+            return str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+        }
+
+        function editFormatModelYear(val) {
+            val = val.trim();
+            if (!val) return '';
+            const yearMatch = val.match(/^(.+?)[- ]*(\d{4})$/);
+            if (yearMatch) {
+                const modelPart = editToTitleCase(yearMatch[1].trim().replace(/[-\s]+$/, ''));
+                return (modelPart ? modelPart + '-' : '') + yearMatch[2];
+            }
+            return editToTitleCase(val);
+        }
+
+        function formatEditModelInput() {
+            const input = document.getElementById('editModelInput');
+            const formatted = editFormatModelYear(input.value);
+            if (formatted) input.value = formatted;
+            editSyncVehicleModel();
+        }
+
+        // Pre-fill on page load from existing vehicle.vehicleModel
+        (function initEditBrand() {
+            const hidden = document.getElementById('editVehicleModelHidden');
+            const existing = (hidden.value || '').trim();
+            if (!existing) return;
+
+            const modelInput = document.getElementById('editModelInput');
+            // Sort by length desc so multi-word brands match first
+            const sorted = EDIT_BRANDS.slice().sort((a, b) => b.length - a.length);
+            let matched = '';
+            for (const brand of sorted) {
+                if (existing.toLowerCase().startsWith(brand.toLowerCase())) {
+                    matched = brand;
+                    break;
+                }
+            }
+
+            if (matched) {
+                selectEditBrand(matched);
+                const rawModel = existing.substring(matched.length).trim();
+                document.getElementById('editModelInput').value = editFormatModelYear(rawModel) || rawModel;
+                editSyncVehicleModel();
+            } else {
+                // Unknown brand â€“ prefill as-is
+                const parts = existing.split(' ');
+                document.getElementById('editBrandTyped').value = editToTitleCase(parts[0]);
+                editBrandConfirmed = editToTitleCase(parts[0]);
+                const rawModel = parts.slice(1).join(' ');
+                document.getElementById('editModelInput').value = editFormatModelYear(rawModel) || rawModel;
+                editSyncVehicleModel();
+            }
+        })();
+
+        // ---- Image preview helpers ----
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            document.getElementById('fileNameDisplay').textContent = file.name;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const preview = document.getElementById('imgPreviewNew');
+                const old = document.getElementById('imgPreview');
+                const placeholder = document.getElementById('imgPlaceholder');
+
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                if (old) old.style.display = 'none';
+                if (placeholder) placeholder.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Image search modal
+        function openImageSearch() {
+            document.getElementById('imageSearchModal').classList.add('active');
+        }
+
+        function closeImageSearch() {
+            document.getElementById('imageSearchModal').classList.remove('active');
+            document.getElementById('searchPreviewImg').style.display = 'none';
+            document.getElementById('searchPreviewError').style.display = 'none';
+            document.getElementById('applySearchBtn').style.display = 'none';
+        }
+
+        function applyImageSearch() {
+            const url = document.getElementById('imageSearchInput').value.trim();
+            const preview = document.getElementById('searchPreviewImg');
+            const err = document.getElementById('searchPreviewError');
+            const applyBtn = document.getElementById('applySearchBtn');
+
+            if (!url) return;
+
+            preview.style.display = 'none';
+            err.style.display = 'none';
+            applyBtn.style.display = 'none';
+
+            preview.src = url;
+            preview.onload = function () {
+                preview.style.display = 'block';
+                applyBtn.style.display = 'inline-flex';
+            };
+            preview.onerror = function () {
+                preview.style.display = 'none';
+                err.textContent = 'Could not load image from this URL. For local files, please use the Browse button.';
+                err.style.display = 'block';
+            };
+        }
+
+        function useSearchedImage() {
+            const url = document.getElementById('imageSearchInput').value.trim();
+            const preview = document.getElementById('imgPreviewNew');
+            const old = document.getElementById('imgPreview');
+            const placeholder = document.getElementById('imgPlaceholder');
+
+            preview.src = url;
+            preview.style.display = 'block';
+            if (old) old.style.display = 'none';
+            if (placeholder) placeholder.style.display = 'none';
+
+            document.getElementById('fileNameDisplay').textContent = url;
+            closeImageSearch();
+        }
+    </script>
+</body>
+
+</html>

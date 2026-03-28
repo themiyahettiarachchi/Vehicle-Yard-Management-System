@@ -1,0 +1,348 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Sales Management - VYMS</title>
+    <link rel="stylesheet" th:href="@{/css/sales.css}">
+    <link rel="stylesheet" th:href="@{/css/manager.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- Manager Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>Vehicle Yard</h2>
+            <p>Management System</p>
+        </div>
+        <div class="sidebar-user">
+            <div class="user-avatar">MU</div>
+            <div class="user-info">
+                <h3>Manager User</h3>
+                <p>Manager</p>
+            </div>
+        </div>
+        <ul class="nav-links">
+            <li class="nav-item"><a th:href="@{/manager}" class="nav-link"><i class="fas fa-th-large"></i> Dashboard</a>
+            </li>
+            <li class="nav-item"><a th:href="@{/manager/inventory}" class="nav-link"><i class="fas fa-car"></i> Vehicle
+                    Inventory</a></li>
+            <li class="nav-item"><a th:href="@{/manager/repair}" class="nav-link"><i class="fas fa-tools"></i>
+                    Repair &amp; Maintenance</a></li>
+            <li class="nav-item"><a th:href="@{/manager/attendance}" class="nav-link"><i
+                        class="fas fa-clipboard-check"></i> Attendance &amp; Salary</a></li>
+            <li class="nav-item"><a th:href="@{/manager/sales}" class="nav-link active"><i
+                        class="fas fa-shopping-cart"></i> Sales Management</a></li>
+            <li class="nav-item"><a th:href="@{/manager/reports}" class="nav-link"><i class="fas fa-file-alt"></i>
+                    Reports</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <a th:href="@{/login}" class="nav-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Sales Management</h1>
+                <p>Record vehicle sales and manage customer information</p>
+            </div>
+            <button class="btn btn-green" onclick="openRecordModal()">
+                <i class="fas fa-plus"></i> Record Sale
+            </button>
+        </div>
+
+        <!-- Metrics -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-info">
+                    <h3>Total Sales</h3>
+                    <div class="metric-value" th:text="${totalSales}">0</div>
+                </div>
+                <div class="metric-icon icon-green"><i class="fas fa-chart-line"></i></div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-info">
+                    <h3>Total Revenue</h3>
+                    <div class="metric-value" th:text="${'$' + totalRevenue}">$0</div>
+                </div>
+                <div class="metric-icon icon-purple"><i class="fas fa-dollar-sign"></i></div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-info">
+                    <h3>Available Vehicles</h3>
+                    <div class="metric-value" th:text="${availableVehicles}">0</div>
+                </div>
+                <div class="metric-icon icon-blue"><i class="fas fa-car"></i></div>
+            </div>
+        </div>
+
+        <!-- Sales Table -->
+        <div class="table-card">
+            <div class="table-header-bar">
+                <div class="table-title">Sales Records</div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Vehicle</th>
+                        <th>Buyer Type</th>
+                        <th>Customer</th>
+                        <th>Contact</th>
+                        <th>Sale Price</th>
+                        <th>Profit/Loss</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Invoice</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="sale : ${sales}">
+                        <td>
+                            <div class="vehicle-name"
+                                th:text="${sale.vehicle != null ? (sale.vehicle.vehicleModel != null ? sale.vehicle.vehicleModel : 'Unknown') : 'N/A'}">
+                                Model</div>
+                            <div class="vehicle-plate"
+                                th:text="${sale.vehicle != null ? sale.vehicle.licensePlate : ''}">Plate</div>
+                        </td>
+                        <td>
+                            <span class="badge"
+                                th:classappend="${sale.buyerType != null ? (sale.buyerType.name() == 'REGULAR_CUSTOMER' ? 'badge-regular' : (sale.buyerType.name() == 'EXPORT' ? 'badge-export' : 'badge-auction')) : 'badge-draft'}"
+                                th:text="${sale.buyerType != null ? (sale.buyerType.name() == 'REGULAR_CUSTOMER' ? 'Regular Customer' : (sale.buyerType.name() == 'EXPORT' ? 'Export' : 'Auction')) : '-'}">Type</span>
+                        </td>
+                        <td>
+                            <div class="customer-name" th:text="${sale.customerName}">Name</div>
+                            <div class="customer-email" th:text="${sale.email}">email</div>
+                        </td>
+                        <td th:text="${sale.contactNumber}">Contact</td>
+                        <td>
+                            <span class="text-profit" th:text="${'$' + sale.salePrice}">$0</span>
+                        </td>
+                        <td>
+                            <span th:if="${sale.profit != null}"
+                                th:classappend="${sale.profit.compareTo(T(java.math.BigDecimal).ZERO) >= 0} ? 'text-profit' : 'text-loss'"
+                                th:text="${(sale.profit.compareTo(T(java.math.BigDecimal).ZERO) >= 0) ? '+$' + sale.profit : '-$' + sale.profit.abs()}">$0</span>
+                        </td>
+                        <td th:text="${sale.saleDate}">Date</td>
+                        <td>
+                            <span class="badge"
+                                th:classappend="${sale.saleStatus != null and sale.saleStatus.equalsIgnoreCase('FINALIZED')} ? 'badge-finalized' : 'badge-draft'"
+                                th:text="${sale.saleStatus != null ? sale.saleStatus : 'Draft'}">Status</span>
+                        </td>
+                        <td>
+                            <a th:href="@{/manager/sales/invoice/{id}(id=${sale.id})}" class="btn btn-outline btn-sm"
+                                style="text-decoration:none;">
+                                <i class="fas fa-file-invoice"></i> Invoice
+                            </a>
+                        </td>
+                        <td>
+                            <button class="btn btn-outline btn-sm" onclick="openEditModal(this)" th:data-id="${sale.id}"
+                                th:data-price="${sale.salePrice != null ? sale.salePrice : 0}"
+                                th:data-buyer="${sale.buyerType != null ? sale.buyerType.name() : 'REGULAR_CUSTOMER'}"
+                                th:data-customer="${sale.customerName != null ? sale.customerName : ''}"
+                                th:data-contact="${sale.contactNumber != null ? sale.contactNumber : ''}"
+                                th:data-email="${sale.email != null ? sale.email : ''}"
+                                th:data-status="${sale.saleStatus != null ? sale.saleStatus : 'FINALIZED'}">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(sales)}">
+                        <td colspan="10" style="text-align:center; padding:40px; color:var(--text-muted);">
+                            No sales recorded yet. Click "Record Sale" to get started.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Edit Sale Modal -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h2 class="modal-title">Edit Sale Record</h2>
+                    <p class="modal-subtitle">Update the existing sale information below.</p>
+                </div>
+                <button class="modal-close" onclick="closeEditModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="editForm" method="post">
+                <div class="form-row">
+                    <div class="form-group" style="margin-bottom:0">
+                        <label class="form-label">Buyer Type</label>
+                        <select name="buyerType" id="editBuyerType" class="form-control" required>
+                            <option value="REGULAR_CUSTOMER">Regular Customer</option>
+                            <option value="EXPORT">Export</option>
+                            <option value="AUCTION">Auction</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0">
+                        <label class="form-label">Sale Price</label>
+                        <input type="number" name="salePrice" id="editSalePrice" class="form-control" placeholder="0.00"
+                            step="0.01" min="0" required>
+                    </div>
+                </div>
+                <hr class="modal-divider">
+                <p style="font-size:14px; font-weight:600; margin-bottom:14px; color:var(--text-muted);">Customer
+                    Information</p>
+                <div class="form-group">
+                    <label class="form-label">Customer Name</label>
+                    <input type="text" name="customerName" id="editCustomerName" class="form-control" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group" style="margin-bottom:0">
+                        <label class="form-label">Contact Number</label>
+                        <input type="text" name="contactNumber" id="editContactNumber" class="form-control">
+                    </div>
+                    <div class="form-group" style="margin-bottom:0">
+                        <label class="form-label">Email (Optional)</label>
+                        <input type="email" name="email" id="editEmail" class="form-control">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select name="saleStatus" id="editSaleStatus" class="form-control">
+                        <option value="DRAFT">Draft</option>
+                        <option value="FINALIZED">Finalized</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="btn btn-green"><i class="fas fa-save"></i> Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Record Sale Modal -->
+    <div class="modal-overlay" id="recordModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h2 class="modal-title">Record New Sale</h2>
+                    <p class="modal-subtitle">Enter the details of the sale and the customer information.</p>
+                </div>
+                <button class="modal-close" onclick="closeRecordModal()"><i class="fas fa-times"></i></button>
+            </div>
+
+            <form th:action="@{/manager/sales/record}" method="post">
+                <!-- Vehicle Selection -->
+                <div class="form-group">
+                    <label class="form-label">Select Vehicle</label>
+                    <select name="vehicleId" id="vehicleSelect" class="form-control" required
+                        onchange="loadVehicleData(this.value)">
+                        <option value="" disabled selected>Choose a vehicle</option>
+                        <option th:each="v : ${vehicles}" th:value="${v.id}"
+                            th:text="${(v.vehicleModel != null ? v.vehicleModel : 'Vehicle ' + v.id) + ' -- ' + (v.licensePlate != null ? v.licensePlate : '')}">
+                            Vehicle</option>
+                    </select>
+                </div>
+
+                <!-- Investment summary box -->
+                <div class="investment-box" id="investmentBox">
+                    Purchase Price: $<span id="purchasePriceDisplay">0</span><br>
+                    Repair Costs: $<span id="repairCostDisplay">0</span><br>
+                    <strong>Total Investment: $<span id="totalInvestmentDisplay">0</span></strong>
+                </div>
+
+                <!-- Buyer Type + Sale Price -->
+                <div class="form-row">
+                    <div class="form-group" style="margin-bottom:0">
+                        <label class="form-label">Buyer Type</label>
+                        <select name="buyerType" class="form-control" required>
+                            <option value="REGULAR_CUSTOMER">Regular Customer</option>
+                            <option value="EXPORT">Export</option>
+                            <option value="AUCTION">Auction</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0">
+                        <label class="form-label">Sale Price</label>
+                        <input type="number" name="salePrice" id="salePriceInput" class="form-control"
+                            placeholder="0.00" step="0.01" min="0" required oninput="calcProfit()">
+                    </div>
+                </div>
+
+                <!-- Profit/Loss Indicator -->
+                <div class="profit-indicator" id="profitIndicator"></div>
+
+                <hr class="modal-divider">
+                <p style="font-size:14px; font-weight:600; margin-bottom:14px; color:var(--text-muted);">Customer
+                    Information</p>
+
+                <div class="form-group">
+                    <label class="form-label">Customer Name</label>
+                    <input type="text" name="customerName" class="form-control" placeholder="John Doe" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group" style="margin-bottom:0">
+                        <label class="form-label">Contact Number</label>
+                        <input type="text" name="contactNumber" class="form-control" placeholder="+1-555-0101">
+                    </div>
+                    <div class="form-group" style="margin-bottom:0">
+                        <label class="form-label">Email (Optional)</label>
+                        <input type="email" name="email" class="form-control" placeholder="customer@email.com">
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeRecordModal()">Cancel</button>
+                    <button type="submit" class="btn btn-green">Finalize Sale</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openRecordModal() { document.getElementById('recordModal').classList.add('active'); }
+        function closeRecordModal() { document.getElementById('recordModal').classList.remove('active'); }
+        function openEditModal(btn) {
+            document.getElementById('editForm').action = '/manager/sales/edit/' + btn.dataset.id;
+            document.getElementById('editSalePrice').value = btn.dataset.price;
+            document.getElementById('editBuyerType').value = btn.dataset.buyer;
+            document.getElementById('editCustomerName').value = btn.dataset.customer;
+            document.getElementById('editContactNumber').value = btn.dataset.contact;
+            document.getElementById('editEmail').value = btn.dataset.email;
+            document.getElementById('editSaleStatus').value = btn.dataset.status;
+            document.getElementById('editModal').classList.add('active');
+        }
+        function closeEditModal() { document.getElementById('editModal').classList.remove('active'); }
+
+        let totalInvestment = 0;
+
+        async function loadVehicleData(vehicleId) {
+            if (!vehicleId) return;
+            const res = await fetch('/manager/sales/api/vehicle/' + vehicleId);
+            const data = await res.json();
+            if (!data.totalInvestment && data.totalInvestment !== 0) return;
+
+            totalInvestment = data.totalInvestment;
+            document.getElementById('purchasePriceDisplay').textContent = data.purchasePrice.toFixed(2);
+            document.getElementById('repairCostDisplay').textContent = data.repairCost.toFixed(2);
+            document.getElementById('totalInvestmentDisplay').textContent = data.totalInvestment.toFixed(2);
+            document.getElementById('investmentBox').style.display = 'block';
+            calcProfit();
+        }
+
+        function calcProfit() {
+            const salePriceVal = parseFloat(document.getElementById('salePriceInput').value) || 0;
+            const indicator = document.getElementById('profitIndicator');
+            if (salePriceVal === 0) { indicator.style.display = 'none'; return; }
+
+            const profit = salePriceVal - totalInvestment;
+            indicator.style.display = 'block';
+            if (profit >= 0) {
+                indicator.className = 'profit-indicator green';
+                indicator.innerHTML = '<i class="fas fa-arrow-up"></i> Projected Profit: $' + profit.toFixed(2);
+            } else {
+                indicator.className = 'profit-indicator red';
+                indicator.innerHTML = '<i class="fas fa-arrow-down"></i> Projected Loss: $' + Math.abs(profit).toFixed(2);
+            }
+        }
+    </script>
+</body>
+
+</html>

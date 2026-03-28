@@ -1,0 +1,87 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>System Logs - Admin</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .logs-shell {
+            max-width: 1200px;
+            margin: 32px auto;
+            padding: 0 8px;
+        }
+
+        .logs-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .logs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 18px 22px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logs-nav {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="logs-shell">
+        <div class="page-header" style="margin-bottom:18px;">
+            <div class="page-title">
+                <h1>System Logs</h1>
+                <p>Track important events and audit status updates</p>
+            </div>
+            <div class="logs-nav">
+                <a href="/admin" class="btn btn-outline" style="text-decoration:none;">
+                    Back to Dashboard
+                </a>
+                <a href="/admin/users" class="btn btn-primary" style="text-decoration:none;">
+                    Manage Users
+                </a>
+            </div>
+        </div>
+
+        <div class="logs-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Timestamp</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                        <th>User</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="log : ${logs}">
+                        <td th:text="${log.id}">1</td>
+                        <td th:text="${log.timestamp}">2026-02-27T10:00:00</td>
+                        <td th:text="${log.type}">LOGIN</td>
+                        <td th:text="${log.description}">Description</td>
+                        <td th:text="${log.user}">Admin</td>
+                        <td th:text="${log.status}">SUCCESS</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(logs)}">
+                        <td colspan="6" style="text-align:center; color: var(--text-muted);">No logs found.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</body>
+
+</html>

@@ -1,0 +1,226 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Repair &amp; Maintenance - VYMS</title>
+    <link rel="stylesheet" th:href="@{/css/manager.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .repair-badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-int {
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+
+        .badge-ext {
+            background: #fef3c7;
+            color: #b45309;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>Vehicle Yard</h2>
+            <p>Management System</p>
+        </div>
+        <div class="sidebar-user">
+            <div class="user-avatar">MU</div>
+            <div class="user-info">
+                <h3>Manager User</h3>
+                <p>Manager</p>
+            </div>
+        </div>
+        <ul class="nav-links">
+            <li class="nav-item"><a th:href="@{/manager}" class="nav-link"><i class="fas fa-th-large"></i> Dashboard</a>
+            </li>
+            <li class="nav-item"><a th:href="@{/manager/inventory}" class="nav-link"><i class="fas fa-car"></i> Vehicle
+                    Inventory</a></li>
+            <li class="nav-item"><a th:href="@{/manager/repair}" class="nav-link active"><i class="fas fa-tools"></i>
+                    Repair &amp; Maintenance</a></li>
+            <li class="nav-item"><a th:href="@{/manager/attendance}" class="nav-link"><i
+                        class="fas fa-clipboard-check"></i> Attendance &amp; Salary</a></li>
+            <li class="nav-item"><a th:href="@{/manager/sales}" class="nav-link"><i class="fas fa-shopping-cart"></i>
+                    Sales Management</a></li>
+            <li class="nav-item"><a th:href="@{/manager/reports}" class="nav-link"><i class="fas fa-file-alt"></i>
+                    Reports</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <a th:href="@{/login}" class="nav-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Repair &amp; Maintenance</h1>
+                <p>Monitor and manage all vehicle repair records</p>
+            </div>
+        </div>
+
+        <!-- Stat Cards -->
+        <div class="metrics-grid metrics-grid-4">
+            <div class="metric-card">
+                <div class="metric-info">
+                    <h3>Total Repairs</h3>
+                    <div class="metric-value" th:text="${totalRepairs}">0</div>
+                </div>
+                <div class="metric-icon icon-blue"><i class="fas fa-tools"></i></div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-info">
+                    <h3>Pending</h3>
+                    <div class="metric-value" th:text="${pendingRepairs}">0</div>
+                </div>
+                <div class="metric-icon icon-orange"><i class="fas fa-hourglass-half"></i></div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-info">
+                    <h3>Inspected</h3>
+                    <div class="metric-value" th:text="${inspectedRepairs}">0</div>
+                </div>
+                <div class="metric-icon icon-green"><i class="fas fa-check-circle"></i></div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-info">
+                    <h3>Total Cost</h3>
+                    <div class="metric-value" th:text="${'$' + #numbers.formatDecimal(totalRepairCost, 1, 2)}">$0</div>
+                </div>
+                <div class="metric-icon icon-red"><i class="fas fa-dollar-sign"></i></div>
+            </div>
+        </div>
+
+        <!-- Repair Records Table -->
+        <div class="table-card">
+            <div class="table-header-bar">
+                <div class="table-title">All Repair Records</div>
+                <span style="font-size:13px;color:var(--text-muted);"
+                    th:text="${repairs != null ? repairs.size() + ' records' : '0 records'}"></span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Vehicle</th>
+                        <th>Description</th>
+                        <th>Type</th>
+                        <th>Cost</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="r : ${repairs}">
+                        <td>
+                            <div style="font-weight:600;" th:text="${r.vehicle != null ? r.vehicle.vehicleModel : '--'}">
+                                Vehicle</div>
+                            <div style="font-size:12px;color:var(--info);"
+                                th:text="${r.vehicle != null ? r.vehicle.licensePlate : ''}">Plate</div>
+                        </td>
+                        <td style="max-width:220px;" th:text="${r.description}">--</td>
+                        <td>
+                            <span th:if="${r.repairType == 'INTERNAL'}" class="badge badge-onleave">Internal</span>
+                            <span th:if="${r.repairType == 'EXTERNAL'}" class="badge badge-warning"
+                                style="background:#fef3c7;color:#f59e0b;">External</span>
+                            <span th:if="${r.repairType != 'INTERNAL' and r.repairType != 'EXTERNAL'}"
+                                th:text="${r.repairType}">--</span>
+                        </td>
+                        <td class="font-bold" th:text="${r.cost != null ? '$' + r.cost : '$0'}">$0</td>
+                        <td th:text="${r.repairDate}">--</td>
+                        <td>
+                            <span th:if="${r.status == 'INSPECTED'}" class="badge badge-inspected">Inspected</span>
+                            <span th:if="${r.status == 'PENDING'}" class="badge badge-pending">Pending</span>
+                            <span th:if="${r.status != 'INSPECTED' and r.status != 'PENDING'}"
+                                th:text="${r.status}">--</span>
+                        </td>
+                        <td>
+                            <button class="btn btn-outline btn-sm" th:data-id="${r.id}" th:data-desc="${r.description}"
+                                th:data-cost="${r.cost}" th:data-type="${r.repairType}" th:data-status="${r.status}"
+                                onclick="openRepairModal(this)">
+                                <i class="fas fa-pencil-alt"></i> Edit
+                            </button>
+                        </td>
+                    </tr>
+                    <tr th:if="${repairs == null or repairs.empty}">
+                        <td colspan="7" style="text-align:center;color:var(--text-muted);padding:40px;">No repair
+                            records found.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Edit Repair Modal -->
+    <div id="repairModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <div class="modal-title">Edit Repair Record</div>
+                    <div class="modal-subtitle">Update repair details below.</div>
+                </div>
+                <button class="modal-close" onclick="closeRepairModal()">&times;</button>
+            </div>
+            <form id="repairForm" method="post">
+                <div class="form-group-modal">
+                    <label class="form-label">Description</label>
+                    <input type="text" name="description" id="repair-desc" class="form-control" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group-modal">
+                        <label class="form-label">Cost ($)</label>
+                        <input type="number" name="cost" id="repair-cost" class="form-control" step="0.01" min="0"
+                            required>
+                    </div>
+                    <div class="form-group-modal">
+                        <label class="form-label">Repair Type</label>
+                        <select name="repairType" id="repair-type" class="form-control">
+                            <option value="INTERNAL">Internal</option>
+                            <option value="EXTERNAL">External</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group-modal">
+                    <label class="form-label">Status</label>
+                    <select name="status" id="repair-status" class="form-control">
+                        <option value="PENDING">Pending</option>
+                        <option value="INSPECTED">Inspected</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeRepairModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openRepairModal(btn) {
+            const d = btn.dataset;
+            document.getElementById('repairForm').action = '/manager/repair/edit/' + d.id;
+            document.getElementById('repair-desc').value = d.desc || '';
+            document.getElementById('repair-cost').value = d.cost || '';
+            document.getElementById('repair-type').value = d.type || '';
+            document.getElementById('repair-status').value = d.status || '';
+            document.getElementById('repairModal').classList.add('active');
+        }
+        function closeRepairModal() { document.getElementById('repairModal').classList.remove('active'); }
+        document.getElementById('repairModal').addEventListener('click', function (e) {
+            if (e.target === this) closeRepairModal();
+        });
+    </script>
+</body>
+
+</html>

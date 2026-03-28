@@ -1,0 +1,167 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice - VYMS</title>
+    <link rel="stylesheet" th:href="@{/css/sales.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+
+            body {
+                margin: 0;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <aside class="sidebar no-print">
+        <div class="sidebar-header">
+            <h2>Vehicle Yard</h2>
+            <p>Management System</p>
+        </div>
+        <div class="sidebar-user">
+            <div class="user-avatar">SL</div>
+            <div class="user-info">
+                <h3>Sales Lead</h3>
+                <p>Sales</p>
+            </div>
+        </div>
+        <ul class="nav-links">
+            <li class="nav-item"><a th:href="@{/sales-dashboard}" class="nav-link"><i class="fas fa-th-large"></i>
+                    Dashboard</a></li>
+            <li class="nav-item"><a th:href="@{/sales-dashboard/sales}" class="nav-link active"><i
+                        class="fas fa-shopping-cart"></i> Sales</a></li>
+            <li class="nav-item"><a th:href="@{/sales-dashboard/inventory}" class="nav-link"><i class="fas fa-car"></i>
+                    Inventory</a></li>
+        </ul>
+        <div class="sidebar-footer"><a th:href="@{/login}" class="nav-link"><i class="fas fa-sign-out-alt"></i>
+                Logout</a></div>
+    </aside>
+
+    <main class="main-content">
+        <!-- Action buttons (hidden on print) -->
+        <div class="page-header no-print">
+            <div class="page-title">
+                <h1>Sale Invoice</h1>
+                <p>Invoice for the selected sale</p>
+            </div>
+            <div style="display:flex; gap:12px;">
+                <a th:href="@{/sales-dashboard/sales}" class="btn btn-outline" style="text-decoration:none;">
+                    <i class="fas fa-arrow-left"></i> Back
+                </a>
+                <button class="btn btn-green" onclick="window.print()">
+                    <i class="fas fa-print"></i> Print / Save PDF
+                </button>
+            </div>
+        </div>
+
+        <!-- Invoice -->
+        <div class="invoice-page">
+            <div class="invoice-header">
+                <div class="invoice-brand">
+                    <h2>Vehicle Yard</h2>
+                    <p>Management System</p>
+                    <p style="margin-top:8px; color:var(--text-muted); font-size:13px;">vehicle@yard.com |
+                        +94-11-000-0000</p>
+                </div>
+                <div class="invoice-meta">
+                    <h3>INVOICE</h3>
+                    <p>Invoice #<span th:text="${'INV-' + sale.id}">INV-1</span></p>
+                    <p th:text="${'Date: ' + sale.saleDate}">Date</p>
+                    <p th:if="${sale.saleStatus != null}" style="margin-top:8px;">
+                        <span class="badge"
+                            th:classappend="${sale.saleStatus.equalsIgnoreCase('FINALIZED')} ? 'badge-finalized' : 'badge-draft'"
+                            th:text="${sale.saleStatus}">Status</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="invoice-grid">
+                <div class="invoice-section">
+                    <h4>Bill To</h4>
+                    <p style="font-weight:600; font-size:15px;" th:text="${sale.customerName}">Customer</p>
+                    <p th:text="${sale.contactNumber}">Contact</p>
+                    <p th:text="${sale.email}">Email</p>
+                </div>
+                <div class="invoice-section">
+                    <h4>Buyer Type</h4>
+                    <p>
+                        <span class="badge"
+                            th:classappend="${sale.buyerType != null ? (sale.buyerType.name() == 'REGULAR_CUSTOMER' ? 'badge-regular' : (sale.buyerType.name() == 'EXPORT' ? 'badge-export' : 'badge-auction')) : 'badge-draft'}"
+                            th:text="${sale.buyerType != null ? (sale.buyerType.name() == 'REGULAR_CUSTOMER' ? 'Regular Customer' : (sale.buyerType.name() == 'EXPORT' ? 'Export' : 'Auction')) : '-'}">Type</span>
+                    </p>
+                </div>
+            </div>
+
+            <table class="invoice-table">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Details</th>
+                        <th style="text-align:right;">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <strong
+                                th:text="${sale.vehicle != null ? (sale.vehicle.vehicleModel != null ? sale.vehicle.vehicleModel : 'Vehicle') : 'Vehicle'}">Model</strong>
+                        </td>
+                        <td>
+                            <span
+                                th:text="${'Chassis: ' + (sale.vehicle != null ? sale.vehicle.chassisNumber : '-')}">Chassis</span><br>
+                            <span
+                                th:text="${'Plate: ' + (sale.vehicle != null ? sale.vehicle.licensePlate : '-')}">Plate</span>
+                        </td>
+                        <td style="text-align:right; font-weight:600;" th:text="${'$' + sale.salePrice}">$0</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="invoice-totals">
+                <div class="invoice-total-row">
+                    <span style="color:var(--text-muted);">Purchase Price</span>
+                    <span
+                        th:text="${sale.vehicle != null ? '$' + (sale.vehicle.purchasePrice != null ? sale.vehicle.purchasePrice : 0) : '-'}">$0</span>
+                </div>
+                <div class="invoice-total-row">
+                    <span style="color:var(--text-muted);">Repair Costs</span>
+                    <span
+                        th:text="${sale.vehicle != null ? '$' + (sale.vehicle.repairCost != null ? sale.vehicle.repairCost : 0) : '-'}">$0</span>
+                </div>
+                <div class="invoice-total-row final">
+                    <span>Sale Price</span>
+                    <span th:text="${'$' + sale.salePrice}">$0</span>
+                </div>
+            </div>
+
+            <!-- Profit/Loss -->
+            <div class="invoice-profit" th:if="${sale.profit != null}"
+                th:classappend="${sale.profit.compareTo(T(java.math.BigDecimal).ZERO) >= 0 ? 'text-profit' : 'text-loss'}">
+                <span
+                    th:text="${sale.profit.compareTo(T(java.math.BigDecimal).ZERO) >= 0 ? 'Net Profit: $' + sale.profit : 'Net Loss: $' + sale.profit.abs()}">
+                    Profit/Loss
+                </span>
+            </div>
+
+            <div class="invoice-footer">
+                <p>Thank you for your business. This is an official invoice from Vehicle Yard Management System.</p>
+                <p style="margin-top:6px;">Generated on: <span
+                        th:text="${#temporals.format(#temporals.createNow(), 'MMM dd, yyyy')}">Today</span></p>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>
