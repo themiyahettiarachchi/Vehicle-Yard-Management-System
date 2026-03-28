@@ -1,0 +1,209 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Mechanic Dashboard - VYMS</title>
+    <link rel="stylesheet" th:href="@{/css/mechanic.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>Vehicle Yard</h2>
+            <p>Management System</p>
+        </div>
+        <div class="sidebar-user">
+            <div class="user-avatar">ML</div>
+            <div class="user-info">
+                <h3>Mechanic Lead</h3>
+                <p>Mechanic</p>
+            </div>
+        </div>
+        <ul class="nav-links">
+            <li class="nav-item">
+                <a th:href="@{/mechanic}" class="nav-link active">
+                    <i class="fas fa-th-large"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a th:href="@{/mechanic/repairs}" class="nav-link">
+                    <i class="fas fa-wrench"></i> Repair &amp; Maintenance
+                </a>
+            </li>
+        </ul>
+        <div class="sidebar-footer">
+            <a th:href="@{/login}" class="nav-link">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Dashboard</h1>
+                <p>Welcome back, Mechanic Lead</p>
+            </div>
+        </div>
+
+        <style>
+            .vehicles-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                gap: 24px;
+            }
+            .vehicle-card {
+                background: #ffffff;
+                border-radius: 12px;
+                border: 1px solid #e2e8f0;
+                overflow: hidden;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            }
+            .vehicle-image-container {
+                position: relative;
+                height: 200px;
+                overflow: hidden;
+                background: #e2e8f0;
+            }
+            .vehicle-image-container img {
+                width: 100%;
+                height: 200px;
+                object-fit: cover;
+            }
+            .vehicle-img-placeholder {
+                width: 100%;
+                height: 200px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: linear-gradient(135deg, #e2e8f0, #f1f5f9);
+                color: #64748b;
+                font-size: 40px;
+            }
+            .status-badge {
+                position: absolute;
+                top: 12px;
+                right: 12px;
+                padding: 6px 12px;
+                border-radius: 6px;
+                font-size: 12px;
+                font-weight: 600;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            }
+            .vehicle-details {
+                padding: 18px;
+            }
+            .vehicle-details h3 {
+                font-size: 16px;
+                font-weight: 700;
+                margin-bottom: 12px;
+                color: #0f172a;
+            }
+            .detail-row {
+                font-size: 13px;
+                color: #64748b;
+                margin-bottom: 6px;
+            }
+            .detail-row span {
+                font-weight: 500;
+                color: #3b82f6; /* info color */
+            }
+            .vehicle-actions {
+                display: flex;
+                gap: 10px;
+                margin-top: 14px;
+                padding-top: 12px;
+                border-top: 1px solid #e2e8f0;
+            }
+        </style>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-info">
+                    <h3>Total Vehicles</h3>
+                    <div class="metric-value" th:text="${totalVehicles}">0</div>
+                </div>
+                <div class="metric-icon icon-blue" style="background: #dbeafe; color: #3b82f6;"><i class="fas fa-car"></i></div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-info">
+                    <h3>Not Inspected</h3>
+                    <div class="metric-value" th:text="${uninspected}">0</div>
+                </div>
+                <div class="metric-icon icon-orange" style="background: #fee2e2; color: #ef4444;"><i class="fas fa-exclamation-circle"></i></div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-info">
+                    <h3>Pending Repairs</h3>
+                    <div class="metric-value" th:text="${pendingRepairs}">0</div>
+                </div>
+                <div class="metric-icon icon-orange" style="background: #fef3c7; color: #f59e0b;"><i class="fas fa-tools"></i></div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-info">
+                    <h3>Fully Inspected</h3>
+                    <div class="metric-value" th:text="${fullyInspected}">0</div>
+                </div>
+                <div class="metric-icon icon-green" style="background: #d1fae5; color: #10b981;"><i class="fas fa-check-circle"></i></div>
+            </div>
+        </div>
+
+        <div class="vehicles-grid">
+            <div th:each="v : ${vehicles}" class="vehicle-card">
+                <div class="vehicle-image-container">
+                    <img th:if="${v.imagePath != null and !v.imagePath.isEmpty()}"
+                        th:src="@{${v.imagePath}}" alt="Vehicle Image">
+                    <div th:unless="${v.imagePath != null and !v.imagePath.isEmpty()}" class="vehicle-img-placeholder">
+                        <i class="fas fa-car"></i>
+                    </div>
+                    
+                    <!-- Inspection Status Badge -->
+                    <th:block th:if="${v.repairs == null or v.repairs.empty}">
+                        <span class="status-badge" style="background: #ef4444; color: white;">
+                            <i class="fas fa-exclamation-circle"></i> Not Inspected
+                        </span>
+                    </th:block>
+                    <th:block th:if="${v.repairs != null and !v.repairs.empty}">
+                        <th:block th:with="pendingList=${v.repairs.?[status != null and status.equalsIgnoreCase('PENDING')]}">
+                            <span th:if="${not #lists.isEmpty(pendingList)}" class="status-badge" style="background: #f59e0b; color: white;">
+                                <i class="fas fa-tools"></i> Pending Repairs
+                            </span>
+                            <span th:if="${#lists.isEmpty(pendingList)}" class="status-badge" style="background: #10b981; color: white;">
+                                <i class="fas fa-check-circle"></i> Fully Inspected
+                            </span>
+                        </th:block>
+                    </th:block>
+                </div>
+
+                <div class="vehicle-details">
+                    <h3 th:text="${v.vehicleModel != null ? v.vehicleModel : 'Unknown Vehicle'}">Model Name</h3>
+                    <div class="detail-row">
+                        Chassis Number: <span th:text="${v.chassisNumber != null ? v.chassisNumber : '-'}">CH-001</span>
+                    </div>
+                    <div class="detail-row">
+                        License Plate: <span th:text="${v.licensePlate != null ? v.licensePlate : '-'}">000000</span>
+                    </div>
+                    
+                    <div class="vehicle-actions">
+                        <a th:href="@{/mechanic/repairs(vehicleId=${v.id})}" class="btn btn-outline btn-sm"
+                            style="text-decoration:none; width: 100%; text-align: center; justify-content: center;">
+                            <i class="fas fa-wrench"></i> View / Inspect
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div th:if="${#lists.isEmpty(vehicles)}" style="grid-column: 1/-1; text-align: center; padding: 60px; color: var(--text-muted);">
+                <i class="fas fa-car" style="font-size: 48px; margin-bottom: 16px; display: block; opacity: 0.3;"></i>
+                <p style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">No vehicles found</p>
+                <p>Vehicles from the yard will appear here for inspection.</p>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

@@ -1,0 +1,467 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Salary Management - VYMS Admin</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .salary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .07);
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 26px;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .stat-value.green {
+            color: #10b981;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            background: #eff6ff;
+            color: #3b82f6;
+        }
+
+        .period-bar {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .07);
+        }
+
+        .period-bar h3 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 14px;
+            color: #111827;
+        }
+
+        .period-row {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: #fff;
+            border: none;
+            padding: 9px 18px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #3b82f6;
+            border: 1px solid #3b82f6;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-outline:hover {
+            background: #eff6ff;
+        }
+
+        .btn-xs {
+            padding: 4px 10px;
+            font-size: 12px;
+            border-radius: 6px;
+        }
+
+        .form-control {
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 13px;
+            width: 100%;
+        }
+
+        .form-label {
+            font-size: 12px;
+            color: #6b7280;
+            font-weight: 500;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .table-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .07);
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .table-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f8fafc;
+            padding: 10px 16px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+
+        td {
+            padding: 12px 16px;
+            border-top: 1px solid #f1f5f9;
+            font-size: 13px;
+            color: #374151;
+            vertical-align: middle;
+        }
+
+        tr:hover td {
+            background: #fafafa;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-permanent {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .badge-contract {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .flash-success {
+            background: #d1fae5;
+            border: 1px solid #6ee7b7;
+            border-radius: 8px;
+            padding: 12px 18px;
+            margin-bottom: 16px;
+            color: #065f46;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .flash-error {
+            background: #fee2e2;
+            border: 1px solid #fca5a5;
+            border-radius: 8px;
+            padding: 12px 18px;
+            margin-bottom: 16px;
+            color: #991b1b;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .note {
+            font-size: 12px;
+            color: #6b7280;
+            padding: 8px 16px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>Vehicle Yard</h2>
+            <p>Management System</p>
+        </div>
+        <div class="sidebar-user">
+            <div class="user-avatar">AU</div>
+            <div class="user-info">
+                <h3>Admin User</h3>
+                <p>Admin</p>
+            </div>
+        </div>
+        <ul class="nav-links">
+            <li class="nav-item"><a th:href="@{/admin}" class="nav-link"><i class="fas fa-th-large"></i> Dashboard</a>
+            </li>
+            <li class="nav-item"><a th:href="@{/admin/users}" class="nav-link"><i class="fas fa-users"></i> Manage
+                    Users</a></li>
+            <li class="nav-item"><a th:href="@{/admin/salary}" class="nav-link active"><i
+                        class="fas fa-money-bill-wave"></i> Salary</a></li>
+            <li class="nav-item"><a th:href="@{/admin/reports}" class="nav-link"><i class="fas fa-file-alt"></i>
+                    Reports</a></li>
+        </ul>
+        <div class="sidebar-footer"><a th:href="@{/login}" class="nav-link"><i class="fas fa-sign-out-alt"></i>
+                Logout</a></div>
+    </aside>
+
+    <main class="main-content">
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Salary Management</h1>
+                <p>Generate payroll from Manager-recorded attendance data</p>
+            </div>
+            <div style="display:flex;gap:10px;">
+                <a th:href="@{/admin/salary/download(month=${selectedMonth},year=${selectedYear})}"
+                   class="btn-primary" style="text-decoration:none;">
+                    <i class="fas fa-file-pdf"></i> Salary PDF
+                </a>
+                <a th:href="@{/admin/salary/full-report/download}"
+                   class="btn-primary" style="text-decoration:none;background:#7c3aed;">
+                    <i class="fas fa-file-download"></i> Full Business Report
+                </a>
+            </div>
+        </div>
+
+        <!-- Flash messages -->
+        <div class="flash-success" th:if="${successMsg != null and !#strings.isEmpty(successMsg)}">
+            <i class="fas fa-check-circle"></i><span th:text="${successMsg}"></span>
+        </div>
+        <div class="flash-error" th:if="${errorMsg != null and !#strings.isEmpty(errorMsg)}">
+            <i class="fas fa-exclamation-circle"></i><span th:text="${errorMsg}"></span>
+        </div>
+
+        <!-- Period picker + generate -->
+        <div class="period-bar">
+            <h3>Select Payroll Period</h3>
+            <div class="period-row">
+                <form th:action="@{/admin/salary}" method="get" style="display:flex;gap:10px;align-items:flex-end;">
+                    <div>
+                        <label class="form-label">Month</label>
+                        <select name="month" class="form-control" style="width:130px;">
+                            <option th:each="m : ${#numbers.sequence(1,12)}" th:value="${m}"
+                                th:text="${#temporals.format(#temporals.create(2000,m,1),'MMMM')}"
+                                th:selected="${m == selectedMonth}">Month</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Year</label>
+                        <select name="year" class="form-control" style="width:90px;">
+                            <option th:each="y : ${#numbers.sequence(2023,2030)}" th:value="${y}" th:text="${y}"
+                                th:selected="${y == selectedYear}">Year</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-outline"><i class="fas fa-search"></i> View</button>
+                </form>
+                <form th:action="@{/admin/salary/generate}" method="post" style="margin-left:8px;">
+                    <input type="hidden" name="month" th:value="${selectedMonth}">
+                    <input type="hidden" name="year" th:value="${selectedYear}">
+                    <button type="submit" class="btn-primary"><i class="fas fa-calculator"></i> Generate
+                        Payroll</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Summary cards -->
+        <div class="salary-grid" th:if="${payrolls != null and !payrolls.empty}">
+            <div class="stat-card">
+                <div>
+                    <div class="stat-label">Total Net Salaries (to disburse)</div>
+                    <div class="stat-value green" th:text="'$' + ${#numbers.formatDecimal(totalNet, 1, 2)}">$0.00
+                    </div>
+                </div>
+                <div class="stat-icon"><i class="fas fa-hand-holding-usd"></i></div>
+            </div>
+            <div class="stat-card">
+                <div>
+                    <div class="stat-label">Total Employer Cost (incl. EPF/ETF)</div>
+                    <div class="stat-value" th:text="'$' + ${#numbers.formatDecimal(totalCost, 1, 2)}">$0.00</div>
+                </div>
+                <div class="stat-icon" style="background:#f0fdf4;color:#16a34a;"><i class="fas fa-building"></i></div>
+            </div>
+        </div>
+
+        <!-- Payslip table -->
+        <div class="table-card" th:if="${payrolls != null and !payrolls.empty}">
+            <div class="table-header">
+                <div class="table-title">Payslip Breakdown</div>
+                <span style="font-size:12px;color:#6b7280;"
+                    th:text="${#temporals.format(#temporals.create(selectedYear, selectedMonth, 1),'MMMM yyyy')}"></span>
+            </div>
+            <div style="overflow-x:auto;">
+                <table style="min-width:1050px;">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Type</th>
+                            <th style="text-align:center;">Days Present</th>
+                            <th style="text-align:center;">Half Days</th>
+                            <th style="text-align:center;">Absent</th>
+                            <th style="text-align:right;">Base Pay</th>
+                            <th style="text-align:right;">Leave Ded.</th>
+                            <th style="text-align:right;">OT Pay</th>
+                            <th style="text-align:right;">Gross</th>
+                            <th style="text-align:right;">EPF (emp 8%)</th>
+                            <th style="text-align:right;font-weight:700;">Net Salary</th>
+                            <th style="text-align:right;">Employer EPF+ETF</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="p : ${payrolls}">
+                            <td>
+                                <div style="font-weight:600;" th:text="${p.user.username}">Name</div>
+                                <div style="font-size:11px;color:#9ca3af;" th:text="${p.user.role}">Role</div>
+                            </td>
+                            <td>
+                                <span th:if="${p.employmentType == 'PERMANENT'}"
+                                    class="badge badge-permanent">Permanent</span>
+                                <span th:if="${p.employmentType == 'CONTRACT'}"
+                                    class="badge badge-contract">Contract</span>
+                            </td>
+                            <td style="text-align:center;" th:text="${p.presentDays != null ? p.presentDays : '--'}"></td>
+                            <td style="text-align:center;" th:text="${p.halfDays != null ? p.halfDays : '--'}"></td>
+                            <td style="text-align:center;" th:text="${p.absentDays != null ? p.absentDays : '--'}"></td>
+                            <td style="text-align:right;" th:text="'$'+${#numbers.formatDecimal(p.basePay, 1, 2)}">
+                            </td>
+                            <td style="text-align:right;color:#ef4444;"
+                                th:text="${p.leaveDeduction != null and p.leaveDeduction > 0 ? '-$'+#numbers.formatDecimal(p.leaveDeduction,1,2) : '--'}">
+                            </td>
+                            <td style="text-align:right;" th:text="'$'+${#numbers.formatDecimal(p.otPay != null ? p.otPay : 0, 1, 2)}">
+                            </td>
+                            <td style="text-align:right;font-weight:600;"
+                                th:text="'$'+${#numbers.formatDecimal(p.grossSalary, 1, 2)}"></td>
+                            <td style="text-align:right;color:#ef4444;"
+                                th:text="${p.epfEmployee != null and p.epfEmployee > 0 ? '-$'+#numbers.formatDecimal(p.epfEmployee,1,2) : '--'}">
+                            </td>
+                            <td style="text-align:right;font-weight:700;color:#10b981;"
+                                th:text="'$'+${#numbers.formatDecimal(p.netSalary, 1, 2)}"></td>
+                            <td style="text-align:right;color:#6b7280;"
+                                th:text="'$'+${#numbers.formatDecimal((p.companyEpf != null ? p.companyEpf : 0) + (p.companyEtf != null ? p.companyEtf : 0), 1, 2)}"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="note">* OT pay applies to Permanent workers only &nbsp;|&nbsp; EPF/ETF applies to Permanent
+                workers only &nbsp;|&nbsp; Half-day = 0.5 day for pay &amp; deduction</div>
+        </div>
+
+        <div th:if="${payrolls == null or payrolls.empty}"
+            style="color:#9ca3af;font-size:14px;padding:24px 0;text-align:center;">
+            No payroll generated for this period yet. Click <strong>Generate Payroll</strong> above.
+        </div>
+
+        <!-- Worker Rate Settings -->
+        <div class="table-card" th:if="${staff != null and !staff.empty}">
+            <div class="table-header">
+                <div class="table-title">Worker Pay Rates</div>
+                <span style="font-size:12px;color:#6b7280;">Only Admin can change contract type &amp; rates</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Employee</th>
+                        <th>Role</th>
+                        <th>Contract Type</th>
+                        <th>Basic Salary (Perm.)</th>
+                        <th>Daily Wage (Contract)</th>
+                        <th>OT Rate /hr (Perm. only)</th>
+                        <th>Save</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Invisible form for each employee, placed outside the table row structure but inside the loop -->
+                    <form th:each="emp : ${staff}" th:id="'form-rates-' + ${emp.id}" th:action="@{'/admin/salary/rates/' + ${emp.id}}" method="post">
+                        <input type="hidden" name="month" th:value="${selectedMonth}">
+                        <input type="hidden" name="year" th:value="${selectedYear}">
+                    </form>
+
+                    <tr th:each="emp : ${staff}">
+                        <td>
+                            <div style="font-weight:600;" th:text="${emp.username}">Name</div>
+                            <div style="font-size:11px;color:#9ca3af;" th:text="${emp.email}">email</div>
+                        </td>
+                        <td th:text="${emp.role}">Role</td>
+                        <td>
+                            <select name="contractType" th:form="'form-rates-' + ${emp.id}" class="form-control" style="width:115px;padding:5px 8px;">
+                                <option value="PERMANENT" th:selected="${emp.contractType == 'PERMANENT' or emp.contractType == null}">Permanent</option>
+                                <option value="CONTRACT" th:selected="${emp.contractType == 'CONTRACT'}">Contract</option>
+                            </select>
+                        </td>
+                        <td>
+                            <input type="number" name="salaryRate" th:form="'form-rates-' + ${emp.id}" step="0.01" min="0" class="form-control"
+                                style="width:110px;padding:5px 8px;" th:value="${emp.salaryRate}" placeholder="Basic $">
+                        </td>
+                        <td>
+                            <input type="number" name="dailyWage" th:form="'form-rates-' + ${emp.id}" step="0.01" min="0" class="form-control"
+                                style="width:100px;padding:5px 8px;" th:value="${emp.dailyWage}" placeholder="Daily $">
+                        </td>
+                        <td>
+                            <input type="number" name="otHourlyRate" th:form="'form-rates-' + ${emp.id}" step="0.01" min="0" class="form-control"
+                                style="width:90px;padding:5px 8px;" th:value="${emp.otHourlyRate}" placeholder="$/hr">
+                        </td>
+                        <td>
+                            <button type="submit" th:form="'form-rates-' + ${emp.id}" class="btn-primary btn-xs"><i class="fas fa-save"></i> Save</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</body>
+
+</html>

@@ -1,0 +1,308 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Repair &amp; Maintenance - VYMS</title>
+    <link rel="stylesheet" th:href="@{/css/mechanic.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>Vehicle Yard</h2>
+            <p>Management System</p>
+        </div>
+        <div class="sidebar-user">
+            <div class="user-avatar">ML</div>
+            <div class="user-info">
+                <h3>Mechanic Lead</h3>
+                <p>Mechanic</p>
+            </div>
+        </div>
+        <ul class="nav-links">
+            <li class="nav-item">
+                <a th:href="@{/mechanic}" class="nav-link">
+                    <i class="fas fa-th-large"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a th:href="@{/mechanic/repairs}" class="nav-link active">
+                    <i class="fas fa-wrench"></i> Repair &amp; Maintenance
+                </a>
+            </li>
+        </ul>
+        <div class="sidebar-footer">
+            <a th:href="@{/login}" class="nav-link">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Repair &amp; Maintenance</h1>
+                <p>Track vehicle repair expenses</p>
+            </div>
+            <div style="display:flex;gap:10px;">
+                <a th:href="@{/mechanic/repairs/download}" class="btn btn-outline" style="text-decoration:none;white-space:nowrap;">
+                    <i class="fas fa-file-pdf"></i> Download Report
+                </a>
+                <button class="btn btn-primary" onclick="openLogModal()">
+                    <i class="fas fa-plus"></i> Log Expense
+                </button>
+            </div>
+        </div>
+
+        <!-- Totals -->
+        <div class="metrics-grid metrics-grid-3">
+            <div class="metric-card">
+                <div class="metric-info">
+                    <h3>Total Expenses</h3>
+                    <div class="metric-value" th:text="${'$' + totalExpenses}">$0</div>
+                </div>
+                <div class="metric-icon icon-red"><i class="fas fa-tools"></i></div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-info">
+                    <h3>Internal Repairs</h3>
+                    <div class="metric-value" th:text="${'$' + internalTotal}">$0</div>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-info">
+                    <h3>External Repairs</h3>
+                    <div class="metric-value" th:text="${'$' + externalTotal}">$0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="filter-bar">
+            <form th:action="@{/mechanic/repairs}" method="get"
+                style="display:flex; align-items:center; gap:12px; flex-grow:1;">
+                <select name="vehicleId" class="filter-select" onchange="this.form.submit()">
+                    <option value="">All Vehicles</option>
+                    <option th:each="v : ${vehicles}" th:value="${v.id}"
+                        th:text="${v.vehicleModel != null ? v.vehicleModel : 'Vehicle #' + v.id}"
+                        th:selected="${v.id == selectedVehicleId}">Vehicle</option>
+                </select>
+            </form>
+            <label class="toggle-label">
+                Show Completed
+                <label class="toggle-switch">
+                    <input type="checkbox" id="showCompleted" onchange="toggleCompleted(this)">
+                    <span class="toggle-slider"></span>
+                </label>
+            </label>
+        </div>
+
+        <!-- Repair Entries Table -->
+        <div class="table-card">
+            <div class="table-header-bar">
+                <div class="table-title">Repair Entries</div>
+            </div>
+            <table id="repairTable">
+                <thead>
+                    <tr>
+                        <th>Vehicle</th>
+                        <th>Description</th>
+                        <th>Type</th>
+                        <th>Cost</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="repair : ${repairs}"
+                        th:if="${selectedVehicleId == null or repair.vehicle.id == selectedVehicleId}"
+                        th:attr="data-status=${repair.status}">
+                        <td>
+                            <div class="vehicle-name"
+                                th:text="${repair.vehicle != null ? (repair.vehicle.vehicleModel != null ? repair.vehicle.vehicleModel : 'Unknown') : 'N/A'}">
+                                Model</div>
+                            <div class="vehicle-plate"
+                                th:text="${repair.vehicle != null ? repair.vehicle.licensePlate : ''}">Plate</div>
+                        </td>
+                        <td th:text="${repair.description}">Description</td>
+                        <td>
+                            <span class="badge"
+                                th:classappend="${repair.repairType != null and repair.repairType.equalsIgnoreCase('INTERNAL')} ? 'badge-internal' : 'badge-external'"
+                                th:text="${repair.repairType != null ? (repair.repairType.equalsIgnoreCase('INTERNAL') ? 'Internal' : 'External') : '-'}">Type</span>
+                        </td>
+                        <td th:text="${repair.cost != null ? '$' + repair.cost : '-'}">$0</td>
+                        <td th:text="${repair.repairDate}">Date</td>
+                        <td>
+                            <span class="badge"
+                                th:classappend="${repair.status != null and repair.status.equalsIgnoreCase('INSPECTED')} ? 'badge-inspected' : 'badge-pending'"
+                                th:text="${repair.status != null ? (repair.status.equalsIgnoreCase('INSPECTED') ? 'Inspected' : 'Pending') : 'Pending'}">Status</span>
+                        </td>
+                        <td>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <a th:if="${repair.status == null or !repair.status.equalsIgnoreCase('INSPECTED')}"
+                                    th:href="@{/mechanic/repairs/inspect/{id}(id=${repair.id})}"
+                                    class="btn btn-success btn-sm" style="text-decoration:none;">
+                                    <i class="fas fa-check"></i> Mark Inspected
+                                </a>
+                                <button class="btn btn-outline btn-sm" th:data-id="${repair.id}" th:data-desc="${repair.description}"
+                                    th:data-cost="${repair.cost}" th:data-type="${repair.repairType}" th:data-status="${repair.status}"
+                                    onclick="openEditRepairModal(this)">
+                                    <i class="fas fa-pencil-alt"></i> Edit
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- Empty state -->
+                    <tr th:if="${#lists.isEmpty(repairs)}">
+                        <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                            No repair entries yet. Click "Log Expense" to add one.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Log Repair Expense Modal -->
+    <div class="modal-overlay" id="logModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h2 class="modal-title">Log Repair Expense</h2>
+                    <p class="modal-subtitle">Enter the details of the repair expense.</p>
+                </div>
+                <button class="modal-close" onclick="closeLogModal()"><i class="fas fa-times"></i></button>
+            </div>
+
+            <form action="/mechanic/repairs/log" method="post">
+                <div class="form-group">
+                    <label class="form-label">Select Vehicle</label>
+                    <select name="vehicleId" class="form-control" required>
+                        <option value="" disabled selected>Choose a vehicle</option>
+                        <option th:each="v : ${vehicles}" th:value="${v.id}"
+                            th:text="${(v.vehicleModel != null ? v.vehicleModel : 'Vehicle #' + v.id) + (v.licensePlate != null ? ' -- ' + v.licensePlate : '')}">
+                            Vehicle</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea name="description" class="form-control" placeholder="Describe the repair work..."
+                        required></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group" style="margin-bottom:0">
+                        <label class="form-label">Cost</label>
+                        <input type="number" name="cost" class="form-control" placeholder="0.00" step="0.01" min="0"
+                            required>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0">
+                        <label class="form-label">Repair Type</label>
+                        <select name="repairType" class="form-control" required>
+                            <option value="INTERNAL">Internal (In-house)</option>
+                            <option value="EXTERNAL">External (Outsourced)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeLogModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Log Expense</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Repair Expense Modal -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h2 class="modal-title">Edit Repair Expense</h2>
+                    <p class="modal-subtitle">Update the details of the repair expense.</p>
+                </div>
+                <button class="modal-close" onclick="closeEditRepairModal()"><i class="fas fa-times"></i></button>
+            </div>
+
+            <form id="editRepairForm" method="post">
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea name="description" id="edit-desc" class="form-control" placeholder="Describe the repair work..."
+                        required></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group" style="margin-bottom:0">
+                        <label class="form-label">Cost</label>
+                        <input type="number" name="cost" id="edit-cost" class="form-control" placeholder="0.00" step="0.01" min="0"
+                            required>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0">
+                        <label class="form-label">Repair Type</label>
+                        <select name="repairType" id="edit-type" class="form-control" required>
+                            <option value="INTERNAL">Internal (In-house)</option>
+                            <option value="EXTERNAL">External (Outsourced)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeEditRepairModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openLogModal() {
+            document.getElementById('logModal').classList.add('active');
+        }
+        function closeLogModal() {
+            document.getElementById('logModal').classList.remove('active');
+        }
+
+        function openEditRepairModal(btn) {
+            const d = btn.dataset;
+            document.getElementById('editRepairForm').action = '/mechanic/repairs/edit/' + d.id;
+            document.getElementById('edit-desc').value = d.desc || '';
+            document.getElementById('edit-cost').value = d.cost || '';
+            document.getElementById('edit-type').value = d.type || '';
+            document.getElementById('editModal').classList.add('active');
+        }
+        function closeEditRepairModal() {
+            document.getElementById('editModal').classList.remove('active');
+        }
+
+        // Toggle completed / non-completed rows
+        function toggleCompleted(checkbox) {
+            const rows = document.querySelectorAll('#repairTable tbody tr[data-status]');
+            rows.forEach(row => {
+                const status = (row.dataset.status || '').toUpperCase();
+                if (checkbox.checked) {
+                    // Show ONLY inspected
+                    row.style.display = (status === 'INSPECTED') ? '' : 'none';
+                } else {
+                    // Show ONLY pending
+                    row.style.display = (status !== 'INSPECTED') ? '' : 'none';
+                }
+            });
+        }
+
+        // Initialize state on load
+        document.addEventListener('DOMContentLoaded', function () {
+            const toggle = document.getElementById('showCompleted');
+            toggleCompleted(toggle);
+        });
+    </script>
+</body>
+
+</html>

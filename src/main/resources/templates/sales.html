@@ -1,0 +1,150 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Sales Dashboard - VYMS</title>
+    <link rel="stylesheet" th:href="@{/css/sales.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>Vehicle Yard</h2>
+            <p>Management System</p>
+        </div>
+        <div class="sidebar-user">
+            <div class="user-avatar">SL</div>
+            <div class="user-info">
+                <h3>Sales Lead</h3>
+                <p>Sales</p>
+            </div>
+        </div>
+        <ul class="nav-links">
+            <li class="nav-item"><a th:href="@{/sales-dashboard}" class="nav-link active"><i
+                        class="fas fa-th-large"></i> Dashboard</a></li>
+            <li class="nav-item"><a th:href="@{/sales-dashboard/sales}" class="nav-link"><i
+                        class="fas fa-shopping-cart"></i> Sales</a></li>
+            <li class="nav-item"><a th:href="@{/sales-dashboard/inventory}" class="nav-link"><i class="fas fa-car"></i>
+                    Inventory</a></li>
+        </ul>
+        <div class="sidebar-footer"><a th:href="@{/login}" class="nav-link"><i class="fas fa-sign-out-alt"></i>
+                Logout</a></div>
+    </aside>
+    <main class="main-content">
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Dashboard</h1>
+                <p>Welcome back, Sales Lead</p>
+            </div>
+        </div>
+        <div class="metrics-grid metrics-grid-4">
+            <div class="metric-card">
+                <div class="metric-info">
+                    <h3>Available Vehicles</h3>
+                    <div class="metric-value" th:text="${availableVehicles}">0</div>
+                </div>
+                <div class="metric-icon icon-blue"><i class="fas fa-car"></i></div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-info">
+                    <h3>Total Sales</h3>
+                    <div class="metric-value" th:text="${totalSales}">0</div>
+                </div>
+                <div class="metric-icon icon-green"><i class="fas fa-chart-line"></i></div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-info">
+                    <h3>Total Revenue</h3>
+                    <div class="metric-value" th:text="${'$' + totalRevenue}">$0</div>
+                </div>
+                <div class="metric-icon icon-purple"><i class="fas fa-dollar-sign"></i></div>
+            </div>
+        </div>
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="chart-title">Buyer Demographics</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="buyerDemographicsChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="chart-title">Recent Transactions Profitability</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="recentTransactionsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script th:inline="javascript">
+        document.addEventListener("DOMContentLoaded", function () {
+            // Chart 1: Buyer Demographics
+            const cReg = /*[[${countRegular}]]*/ 0;
+            const cExp = /*[[${countExport}]]*/ 0;
+            const cAuc = /*[[${countAuction}]]*/ 0;
+
+            new Chart(document.getElementById('buyerDemographicsChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Regular', 'Export', 'Auction'],
+                    datasets: [{
+                        data: [cReg, cExp, cAuc],
+                        backgroundColor: ['#3b82f6', '#10b981', '#f59e0b'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '65%'
+                }
+            });
+
+            // Chart 2: Recent Transactions
+            const recentLabels = /*[[${recentLabels}]]*/ [];
+            const recentPrices = /*[[${recentPrices}]]*/ [];
+            const recentCosts = /*[[${recentCosts}]]*/ [];
+
+            new Chart(document.getElementById('recentTransactionsChart'), {
+                type: 'bar',
+                data: {
+                    labels: recentLabels,
+                    datasets: [
+                        {
+                            label: 'Sale Price',
+                            data: recentPrices,
+                            backgroundColor: '#10b981',
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'Total Cost',
+                            data: recentCosts,
+                            backgroundColor: '#ef4444',
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

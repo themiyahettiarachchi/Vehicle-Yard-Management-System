@@ -1,0 +1,173 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Vehicle Inventory - VYMS</title>
+    <link rel="stylesheet" th:href="@{/css/manager.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>Vehicle Yard</h2>
+            <p>Management System</p>
+        </div>
+        <div class="sidebar-user">
+            <div class="user-avatar">MU</div>
+            <div class="user-info">
+                <h3>Manager User</h3>
+                <p>Manager</p>
+            </div>
+        </div>
+        <ul class="nav-links">
+            <li class="nav-item"><a th:href="@{/manager}" class="nav-link"><i class="fas fa-th-large"></i> Dashboard</a>
+            </li>
+            <li class="nav-item"><a th:href="@{/manager/inventory}" class="nav-link active"><i class="fas fa-car"></i>
+                    Vehicle Inventory</a></li>
+            <li class="nav-item"><a th:href="@{/manager/repair}" class="nav-link"><i class="fas fa-tools"></i>
+                    Repair &amp; Maintenance</a></li>
+            <li class="nav-item"><a th:href="@{/manager/attendance}" class="nav-link"><i
+                        class="fas fa-clipboard-check"></i> Attendance &amp; Salary</a></li>
+            <li class="nav-item"><a th:href="@{/manager/sales}" class="nav-link"><i class="fas fa-shopping-cart"></i>
+                    Sales Management</a></li>
+            <li class="nav-item"><a th:href="@{/manager/reports}" class="nav-link"><i class="fas fa-file-alt"></i>
+                    Reports</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <a th:href="@{/login}" class="nav-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Vehicle Inventory</h1>
+                <p>View and edit all vehicles in the yard</p>
+            </div>
+        </div>
+
+        <!-- Vehicle Table -->
+        <div class="table-card">
+            <div class="table-header-bar">
+                <div class="table-title">All Vehicles</div>
+                <span style="font-size:13px;color:var(--text-muted);"
+                    th:text="${vehicles != null ? vehicles.size() + ' vehicles' : '0 vehicles'}"></span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Model</th>
+                        <th>Chassis No.</th>
+                        <th>License Plate</th>
+                        <th>Purchase Price</th>
+                        <th>Repair Cost</th>
+                        <th>Sale Price</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="v : ${vehicles}">
+                        <td>
+                            <div style="font-weight:600;" th:text="${v.vehicleModel}">Model</div>
+                        </td>
+                        <td style="font-size:13px;color:var(--text-muted);" th:text="${v.chassisNumber}">CH-000</td>
+                        <td th:text="${v.licensePlate}">ABC-123</td>
+                        <td th:text="${v.purchasePrice != null ? '$' + v.purchasePrice : '--'}">$0</td>
+                        <td th:text="${v.repairCost != null ? '$' + v.repairCost : '$0'}">$0</td>
+                        <td th:text="${v.salePrice != null ? '$' + v.salePrice : '--'}">--</td>
+                        <td>
+                            <span th:if="${v.status == 'SOLD'}" class="badge badge-sold">SOLD</span>
+                            <span th:if="${v.status != 'SOLD'}" class="badge badge-unsold">UNSOLD</span>
+                        </td>
+                        <td>
+                            <button class="btn btn-outline btn-sm" th:data-id="${v.id}" th:data-model="${v.vehicleModel}" th:data-plate="${v.licensePlate}" th:data-purchase="${v.purchasePrice != null ? v.purchasePrice : 0}" th:data-repair="${v.repairCost != null ? v.repairCost : 0}" th:data-status="${v.status != null ? v.status : 'UNSOLD'}" onclick="openEditModal(this)">
+                                <i class="fas fa-pencil-alt"></i> Edit
+                            </button>
+                        </td>
+                    </tr>
+                    <tr th:if="${vehicles == null or vehicles.empty}">
+                        <td colspan="8" style="text-align:center;color:var(--text-muted);padding:32px;">No vehicles
+                            found.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Edit Vehicle Modal -->
+    <div id="editModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <div class="modal-title">Edit Vehicle</div>
+                    <div class="modal-subtitle">Update vehicle details below.</div>
+                </div>
+                <button class="modal-close" onclick="closeEditModal()">&times;</button>
+            </div>
+            <form id="editForm" method="post">
+                <div class="form-group-modal">
+                    <label class="form-label">Vehicle Model</label>
+                    <input type="text" name="vehicleModel" id="edit-model" class="form-control" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group-modal">
+                        <label class="form-label">License Plate</label>
+                        <input type="text" name="licensePlate" id="edit-plate" class="form-control" required>
+                    </div>
+                    <div class="form-group-modal">
+                        <label class="form-label">Status</label>
+                        <select name="status" id="edit-status" class="form-control">
+                            <option value="UNSOLD">UNSOLD</option>
+                            <option value="SOLD">SOLD</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group-modal">
+                        <label class="form-label">Purchase Price ($)</label>
+                        <input type="number" name="purchasePrice" id="edit-purchase" class="form-control" step="0.01"
+                            min="0">
+                    </div>
+                    <div class="form-group-modal">
+                        <label class="form-label">Repair Cost ($)</label>
+                        <input type="number" name="repairCost" id="edit-repair" class="form-control" step="0.01"
+                            min="0">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openEditModal(btn) {
+            var id = btn.dataset.id;
+            var model = btn.dataset.model;
+            var plate = btn.dataset.plate;
+            var purchase = btn.dataset.purchase;
+            var repair = btn.dataset.repair;
+            var status = btn.dataset.status;
+            document.getElementById('editForm').action = '/manager/inventory/edit/' + id;
+            document.getElementById('edit-model').value = model;
+            document.getElementById('edit-plate').value = plate;
+            document.getElementById('edit-purchase').value = purchase;
+            document.getElementById('edit-repair').value = repair;
+            document.getElementById('edit-status').value = status;
+            document.getElementById('editModal').classList.add('active');
+        }
+        function closeEditModal() { document.getElementById('editModal').classList.remove('active'); }
+        document.getElementById('editModal').addEventListener('click', function (e) {
+            if (e.target === this) closeEditModal();
+        });
+    </script>
+</body>
+
+</html>

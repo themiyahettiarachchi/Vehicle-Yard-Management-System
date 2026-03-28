@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Inventory Dashboard - VYMS</title>
+    <link rel="stylesheet" th:href="@{/css/inventory.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>Vehicle Yard</h2>
+            <p>Management System</p>
+        </div>
+        <div class="sidebar-user">
+            <div class="user-avatar">IL</div>
+            <div class="user-info">
+                <h3>Inventory Lead</h3>
+                <p>Inventory</p>
+            </div>
+        </div>
+        <ul class="nav-links">
+            <li class="nav-item">
+                <a th:href="@{/inventory}" class="nav-link active">
+                    <i class="fas fa-th-large"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a th:href="@{/inventory/vehicles}" class="nav-link">
+                    <i class="fas fa-car"></i> Vehicle Inventory
+                </a>
+            </li>
+            <li class="nav-item">
+                <a th:href="@{/inventory/reports}" class="nav-link">
+                    <i class="fas fa-file-alt"></i> Reports
+                </a>
+            </li>
+        </ul>
+        <div class="sidebar-footer">
+            <a th:href="@{/login}" class="nav-link">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Dashboard</h1>
+                <p>Welcome back, Inventory Lead</p>
+            </div>
+        </div>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-info">
+                    <h3>Total Vehicles</h3>
+                    <div class="metric-value" th:text="${totalVehicles}">0</div>
+                </div>
+                <div class="metric-icon icon-blue"><i class="fas fa-car"></i></div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-info">
+                    <h3>Available Vehicles</h3>
+                    <div class="metric-value" th:text="${unsoldCount}">0</div>
+                </div>
+                <div class="metric-icon icon-green"><i class="fas fa-car-side"></i></div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-info">
+                    <h3>Sold Vehicles</h3>
+                    <div class="metric-value" th:text="${soldCount}">0</div>
+                </div>
+                <div class="metric-icon icon-purple"><i class="fas fa-check-circle"></i></div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-info">
+                    <h3>Total Investment</h3>
+                    <div class="metric-value" th:text="${'$' + totalInvestment}">$0</div>
+                </div>
+                <div class="metric-icon icon-green"><i class="fas fa-dollar-sign"></i></div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-title">Inventory Status Distribution</div>
+                <div class="chart-container"><canvas id="inventoryStatusChart"></canvas></div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title">Vehicle Brand Distribution</div>
+                <div class="chart-container"><canvas id="brandDistChart"></canvas></div>
+            </div>
+        </div>
+
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script th:inline="javascript">
+        document.addEventListener("DOMContentLoaded", function () {
+            // Chart 1: Inventory Status
+            const unsold = /*[[${unsoldCount}]]*/ 0;
+            const sold = /*[[${soldCount}]]*/ 0;
+
+            new Chart(document.getElementById('inventoryStatusChart'), {
+                type: 'pie',
+                data: {
+                    labels: ['Unsold (In Yard)', 'Sold'],
+                    datasets: [{
+                        data: [unsold, sold],
+                        backgroundColor: ['#3b82f6', '#10b981'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+
+            // Chart 2: Brand Distribution
+            const brandLabels = /*[[${brandLabels}]]*/ [];
+            const brandData = /*[[${brandData}]]*/ [];
+            const brandTotal = brandData.reduce((a, b) => a + b, 0);
+
+            const brandColors = [
+                '#6366f1','#10b981','#f59e0b','#3b82f6','#ef4444',
+                '#8b5cf6','#06b6d4','#84cc16','#f97316','#ec4899',
+                '#14b8a6','#a855f7'
+            ];
+
+            new Chart(document.getElementById('brandDistChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: brandLabels,
+                    datasets: [{
+                        data: brandData,
+                        backgroundColor: brandColors.slice(0, brandLabels.length),
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '55%',
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx) {
+                                    const pct = brandTotal > 0 ? ((ctx.raw / brandTotal) * 100).toFixed(1) : 0;
+                                    return ctx.label + ': ' + ctx.raw + ' (' + pct + '%)';
+                                }
+                            }
+                        },
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 12,
+                                font: { size: 12 }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

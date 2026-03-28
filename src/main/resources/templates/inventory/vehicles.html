@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Vehicle Inventory - VYMS</title>
+    <link rel="stylesheet" th:href="@{/css/inventory.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>Vehicle Yard</h2>
+            <p>Management System</p>
+        </div>
+        <div class="sidebar-user">
+            <div class="user-avatar">IL</div>
+            <div class="user-info">
+                <h3>Inventory Lead</h3>
+                <p>Inventory</p>
+            </div>
+        </div>
+        <ul class="nav-links">
+            <li class="nav-item">
+                <a th:href="@{/inventory}" class="nav-link">
+                    <i class="fas fa-th-large"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a th:href="@{/inventory/vehicles}" class="nav-link active">
+                    <i class="fas fa-car"></i> Vehicle Inventory
+                </a>
+            </li>
+            <li class="nav-item">
+                <a th:href="@{/inventory/reports}" class="nav-link">
+                    <i class="fas fa-file-alt"></i> Reports
+                </a>
+            </li>
+        </ul>
+        <div class="sidebar-footer">
+            <a th:href="@{/login}" class="nav-link">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Vehicle Inventory</h1>
+                <p>Manage your vehicle stock</p>
+            </div>
+            <button class="btn btn-primary" onclick="openAddModal()">
+                <i class="fas fa-plus"></i> Add Vehicle
+            </button>
+        </div>
+
+        <div th:if="${uploadError}" style="margin-bottom: 16px; padding: 14px; border-radius: 8px; background: #fee2e2; color: #991b1b; display:flex; align-items:center; gap:8px;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span th:text="${uploadError}">Upload error message</span>
+        </div>
+        <div th:if="${successMsg}" style="margin-bottom: 16px; padding: 14px; border-radius: 8px; background: #ecfdf3; color: #166534; display:flex; align-items:center; gap:8px;">
+            <i class="fas fa-check-circle"></i>
+            <span th:text="${successMsg}">Success message</span>
+        </div>
+
+        <!-- Search & Filter Bar -->
+        <div class="search-bar">
+            <div class="search-input-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" class="search-input" id="searchInput"
+                    placeholder="Search by model, chassis, or plate..." oninput="filterVehicles()">
+            </div>
+            <div class="filter-group">
+                <button class="filter-btn active" id="filter-all" onclick="setFilter('all')">All</button>
+                <button class="filter-btn" id="filter-unsold" onclick="setFilter('unsold')">Unsold</button>
+                <button class="filter-btn" id="filter-sold" onclick="setFilter('sold')">Sold</button>
+            </div>
+        </div>
+
+        <!-- Vehicle Cards Grid -->
+        <div class="vehicles-grid" id="vehiclesGrid">
+            <div th:each="vehicle : ${vehicles}" class="vehicle-card" th:attr="data-status=${vehicle.status != null ? vehicle.status.toLowerCase() : 'unsold'},
+                           data-model=${vehicle.vehicleModel != null ? vehicle.vehicleModel.toLowerCase() : ''},
+                           data-chassis=${vehicle.chassisNumber != null ? vehicle.chassisNumber.toLowerCase() : ''},
+                           data-plate=${vehicle.licensePlate != null ? vehicle.licensePlate.toLowerCase() : ''}">
+
+                <div class="vehicle-image-container">
+                    <img th:if="${vehicle.imagePath != null and !vehicle.imagePath.isEmpty()}"
+                        th:src="${vehicle.imagePath}" alt="Vehicle Image">
+                    <div th:unless="${vehicle.imagePath != null and !vehicle.imagePath.isEmpty()}"
+                        class="vehicle-img-placeholder">
+                        <i class="fas fa-car"></i>
+                    </div>
+                    <span class="status-badge"
+                        th:classappend="${vehicle.status != null and vehicle.status.equalsIgnoreCase('SOLD')} ? 'badge-sold' : 'badge-unsold'"
+                        th:text="${vehicle.status != null ? vehicle.status : 'Unsold'}">Status</span>
+                </div>
+
+                <div class="vehicle-details">
+                    <h3 th:text="${vehicle.vehicleModel != null ? vehicle.vehicleModel : 'Unknown Model'}">Model</h3>
+                    <div class="detail-row">
+                        Chassis: <span
+                            th:text="${vehicle.chassisNumber != null ? vehicle.chassisNumber : '-'}">CH001</span>
+                    </div>
+                    <div class="detail-row">
+                        Plate: <span style="color: var(--text-main);"
+                            th:text="${vehicle.licensePlate != null ? vehicle.licensePlate : '-'}">ABC-1234</span>
+                    </div>
+                    <div class="detail-row">
+                        Purchase:
+                        <span style="color: var(--text-main);"
+                            th:text="${vehicle.purchasePrice != null ? '$' + vehicle.purchasePrice : '-'}">$0</span>
+                    </div>
+                    <div class="detail-row"
+                        th:if="${vehicle.repairCost != null and vehicle.repairCost.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
+                        Repairs: <span style="color: var(--danger);" th:text="'$' + ${vehicle.repairCost}">$0</span>
+                    </div>
+                    <div class="detail-row price" th:if="${vehicle.salePrice != null}">
+                        Sale Price: <span th:text="'$' + ${vehicle.salePrice}">$0</span>
+                    </div>
+                    <div class="vehicle-actions">
+                        <a th:href="@{/inventory/vehicles/edit/{id}(id=${vehicle.id})}" class="btn btn-outline btn-sm"
+                            style="text-decoration:none;">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div th:if="${#lists.isEmpty(vehicles)}"
+                style="grid-column: 1/-1; text-align: center; padding: 60px; color: var(--text-muted);">
+                <i class="fas fa-car" style="font-size: 48px; margin-bottom: 16px; display: block; opacity: 0.3;"></i>
+                <p style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">No vehicles yet</p>
+                <p>Click "Add Vehicle" to get started.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add Vehicle Modal -->
+    <div class="modal-overlay" id="addModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h2 class="modal-title">Add New Vehicle</h2>
+                    <p class="modal-subtitle">Enter the vehicle details below.</p>
+                </div>
+                <button class="modal-close" onclick="closeAddModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <form th:action="@{/inventory/vehicles/add}" method="post" enctype="multipart/form-data">
+                <div class="form-row">
+                    <div class="form-group" style="margin-bottom:0">
+                        <label class="form-label">Chassis Number</label>
+                        <input type="text" name="chassisNumber" class="form-control" oninput="this.value = this.value.toUpperCase()" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0">
+                        <label class="form-label">License Plate</label>
+                        <input type="text" name="licensePlate" class="form-control" oninput="this.value = this.value.toUpperCase()" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Vehicle Brand</label>
+                    <!-- Typeahead brand combobox -->
+                    <div class="brand-combobox" id="brandCombobox">
+                        <div class="brand-input-wrap">
+                            <Input type="text" id="brandTyped" class="form-control brand-typed"
+                                placeholder="Type brand name..." autocomplete="off" oninput="onBrandType(this)"
+                                onkeydown="onBrandKey(event)" onfocus="onBrandFocus()" onblur="onBrandBlur()">
+                            <span id="brandGhost" class="brand-ghost"></span>
+                        </div>
+                        <ul id="brandDropList" class="brand-drop-list" style="display:none;"></ul>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Model &amp; Year <span
+                            style="color:var(--text-muted);font-size:12px;">(e.g. Civic 2022)</span></label>
+                    <input type="text" id="modelInput" class="form-control" placeholder="e.g., Supra-1997" required
+                        oninput="syncVehicleModel()" onblur="formatModelInput()">
+                </div>
+                <!-- Hidden field that carries the full combined value to the server -->
+                <input type="hidden" name="vehicleModel" id="vehicleModelHidden">
+                <div class="form-group">
+                    <label class="form-label">Purchase Price</label>
+                    <input type="number" name="purchasePrice" class="form-control" placeholder="0.00" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Vehicle Image</label>
+                    <div class="image-upload-zone" onclick="document.getElementById('add-imageFile').click()">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Click to browse and upload an image</p>
+                        <input type="file" name="imageFile" id="add-imageFile" accept="image/*" style="display:none;">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeAddModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Vehicle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ===================== Brand Typeahead =====================
+        const ALL_BRANDS = [
+            'Acura', 'Alfa Romeo', 'Aston Martin', 'Audi',
+            'Bentley', 'BMW', 'Buick', 'BYD',
+            'Cadillac', 'Chevrolet', 'Chrysler',
+            'Dodge',
+            'Ferrari', 'Fiat', 'Ford',
+            'Geely', 'Genesis', 'GMC',
+            'Honda', 'Hyundai',
+            'Infiniti',
+            'Jaguar', 'Jeep',
+            'Kia',
+            'Lamborghini', 'Land Rover', 'Lexus', 'Lincoln',
+            'Maserati', 'Mazda', 'Mercedes-Benz', 'MG', 'Mini', 'Mitsubishi',
+            'Nissan',
+            'Peugeot', 'Porsche',
+            'Renault', 'Rolls-Royce',
+            'Seat', 'Skoda', 'SsangYong', 'Subaru', 'Suzuki',
+            'Tesla', 'Toyota',
+            'Volkswagen', 'Volvo'
+        ];
+
+        let brandConfirmed = ''; // currently selected/confirmed brand
+        let dropHighlight = -1;
+
+        function onBrandType(input) {
+            const val = input.value;
+            brandConfirmed = '';
+            dropHighlight = -1;
+            const ghost = document.getElementById('brandGhost');
+
+            if (!val) {
+                ghost.textContent = '';
+                hideBrandDrop();
+                syncVehicleModel();
+                return;
+            }
+
+            // Find first brand that starts with typed text (case-insensitive)
+            const match = ALL_BRANDS.find(b => b.toLowerCase().startsWith(val.toLowerCase()));
+            ghost.textContent = match ? val + match.slice(val.length) : val;
+
+            // Build filtered list starting with typed text
+            const filtered = ALL_BRANDS.filter(b => b.toLowerCase().startsWith(val.toLowerCase()));
+            if (filtered.length > 0) {
+                buildDropList(filtered, val);
+            } else {
+                hideBrandDrop();
+            }
+            syncVehicleModel();
+        }
+
+        function onBrandKey(e) {
+            const input = document.getElementById('brandTyped');
+            const dropList = document.getElementById('brandDropList');
+            const items = dropList.querySelectorAll('li');
+
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (dropHighlight >= 0 && items[dropHighlight]) {
+                    selectBrand(items[dropHighlight].dataset.brand);
+                } else {
+                    // Confirm ghost suggestion
+                    const ghost = document.getElementById('brandGhost').textContent;
+                    if (ghost) selectBrand(ghost);
+                    else if (input.value.trim()) selectBrand(input.value.trim());
+                }
+                return;
+            }
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (dropList.style.display === 'none') {
+                    // Open drop showing all brands starting with current letter
+                    onBrandType(input);
+                }
+                dropHighlight = Math.min(dropHighlight + 1, items.length - 1);
+                updateDropHighlight(items);
+                return;
+            }
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                dropHighlight = Math.max(dropHighlight - 1, 0);
+                updateDropHighlight(items);
+                return;
+            }
+            if (e.key === 'Escape') {
+                hideBrandDrop();
+            }
+            if (e.key === 'Tab') {
+                // Accept ghost suggestion on Tab
+                const ghost = document.getElementById('brandGhost').textContent;
+                if (ghost && !brandConfirmed) {
+                    e.preventDefault();
+                    selectBrand(ghost);
+                }
+            }
+        }
+
+        function onBrandFocus() {
+            const input = document.getElementById('brandTyped');
+            if (input.value.trim()) onBrandType(input);
+        }
+
+        function onBrandBlur() {
+            // Delay so click on dropdown item fires first
+            setTimeout(() => {
+                hideBrandDrop();
+                // If no confirmed brand, accept whatever is typed
+                if (!brandConfirmed) {
+                    const val = document.getElementById('brandTyped').value.trim();
+                    if (val) brandConfirmed = val;
+                }
+                syncVehicleModel();
+            }, 180);
+        }
+
+        function buildDropList(brands, typed) {
+            const list = document.getElementById('brandDropList');
+            list.innerHTML = '';
+            dropHighlight = -1;
+            brands.forEach(brand => {
+                const li = document.createElement('li');
+                li.dataset.brand = brand;
+                // Bold the typed portion, normal for the rest
+                li.innerHTML = '<strong>' + brand.slice(0, typed.length) + '</strong>' + brand.slice(typed.length);
+                li.addEventListener('mousedown', () => selectBrand(brand));
+                list.appendChild(li);
+            });
+            list.style.display = 'block';
+        }
+
+        function hideBrandDrop() {
+            document.getElementById('brandDropList').style.display = 'none';
+            dropHighlight = -1;
+        }
+
+        function updateDropHighlight(items) {
+            items.forEach((li, i) => li.classList.toggle('active', i === dropHighlight));
+            if (items[dropHighlight]) items[dropHighlight].scrollIntoView({ block: 'nearest' });
+        }
+
+        function selectBrand(brand) {
+            // Normalize: if it's a known brand use its casing, else Title Case
+            const known = ALL_BRANDS.find(b => b.toLowerCase() === brand.toLowerCase());
+            brandConfirmed = known || toTitleCase(brand);
+            const input = document.getElementById('brandTyped');
+            input.value = brandConfirmed;
+            document.getElementById('brandGhost').textContent = '';
+            hideBrandDrop();
+            syncVehicleModel();
+            document.getElementById('modelInput').focus();
+        }
+
+        function syncVehicleModel() {
+            const raw = document.getElementById('brandTyped').value.trim();
+            const known = ALL_BRANDS.find(b => b.toLowerCase() === raw.toLowerCase());
+            const brand = brandConfirmed
+                ? (ALL_BRANDS.find(b => b.toLowerCase() === brandConfirmed.toLowerCase()) || toTitleCase(brandConfirmed))
+                : (known || toTitleCase(raw));
+            const model = formatModelYear(document.getElementById('modelInput').value);
+            document.getElementById('vehicleModelHidden').value =
+                brand && model ? brand + ' ' + model : (brand || model);
+        }
+
+        // ---- Formatting helpers ----
+        function toTitleCase(str) {
+            return str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+        }
+
+        // Format model+year as "ModelName-Year" e.g. "supra 1997" â†’ "Supra-1997"
+        function formatModelYear(val) {
+            val = val.trim();
+            if (!val) return '';
+            // Detect trailing 4-digit year separated by space, dash, or nothing
+            const yearMatch = val.match(/^(.+?)[-\s]*(\d{4})$/);
+            if (yearMatch) {
+                const modelPart = toTitleCase(yearMatch[1].trim().replace(/[-\s]+$/, ''));
+                return (modelPart ? modelPart + '-' : '') + yearMatch[2];
+            }
+            // No year detected â€“ just Title Case the whole thing
+            return toTitleCase(val);
+        }
+
+        // Called onblur of model input â€“ reformats display in the field itself
+        function formatModelInput() {
+            const input = document.getElementById('modelInput');
+            const formatted = formatModelYear(input.value);
+            if (formatted) input.value = formatted;
+            syncVehicleModel();
+        }
+
+        // ===================== Modal =====================
+        function openAddModal() {
+            document.getElementById('addModal').classList.add('active');
+            document.getElementById('brandTyped').value = '';
+            document.getElementById('brandGhost').textContent = '';
+            hideBrandDrop();
+            brandConfirmed = '';
+            document.getElementById('modelInput').value = '';
+            document.getElementById('vehicleModelHidden').value = '';
+        }
+        function closeAddModal() {
+            document.getElementById('addModal').classList.remove('active');
+        }
+
+        // Validate on submit
+        document.querySelector('#addModal form').addEventListener('submit', function (e) {
+            syncVehicleModel();
+            const hidden = document.getElementById('vehicleModelHidden');
+            if (!hidden.value.trim()) {
+                e.preventDefault();
+                alert('Please enter a brand and a model name.');
+                document.getElementById('brandTyped').focus();
+            }
+        });
+
+        let currentFilter = 'all';
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('filter-' + filter).classList.add('active');
+            applyFilters();
+        }
+
+        function filterVehicles() {
+            applyFilters();
+        }
+
+        function applyFilters() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            document.querySelectorAll('#vehiclesGrid .vehicle-card').forEach(card => {
+                const status = card.dataset.status || '';
+                const model = card.dataset.model || '';
+                const chassis = card.dataset.chassis || '';
+                const plate = card.dataset.plate || '';
+
+                const matchesFilter = currentFilter === 'all' || status === currentFilter;
+                const matchesSearch = !query || model.includes(query) || chassis.includes(query) || plate.includes(query);
+
+                card.style.display = (matchesFilter && matchesSearch) ? '' : 'none';
+            });
+        }
+    </script>
+</body>
+
+</html>

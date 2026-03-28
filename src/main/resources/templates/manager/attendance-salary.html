@@ -1,0 +1,546 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Attendance - VYMS</title>
+    <link rel="stylesheet" th:href="@{/css/manager.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .att-actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .btn-checkin {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #6ee7b7;
+        }
+
+        .btn-checkin:hover {
+            background: #a7f3d0;
+        }
+
+        .btn-checkout {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #93c5fd;
+        }
+
+        .btn-checkout:hover {
+            background: #bfdbfe;
+        }
+
+        .btn-offday {
+            background: #f3f4f6;
+            color: #6b7280;
+            border: 1px solid #d1d5db;
+        }
+
+        .btn-offday:hover {
+            background: #e5e7eb;
+        }
+
+        .badge-present {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-absent {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-offday {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .badge-halfday {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-done {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .error-banner {
+            background: #fee2e2;
+            border: 1px solid #fca5a5;
+            border-radius: 8px;
+            padding: 12px 18px;
+            margin-bottom: 20px;
+            color: #991b1b;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .metrics-grid-4 {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        /* â”€â”€ Attendance History â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+        .history-filter-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 1px 6px rgba(0,0,0,.08);
+            padding: 18px 22px;
+            margin-bottom: 20px;
+        }
+        .history-filter-card .filter-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .history-filter-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: flex-end;
+        }
+        .history-filter-form .fgroup {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .history-filter-form label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+        }
+        .history-filter-form input[type="month"],
+        .history-filter-form input[type="date"] {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 7px 12px;
+            font-size: 14px;
+            color: #1e293b;
+            background: #f8fafc;
+            outline: none;
+            transition: border-color .2s;
+        }
+        .history-filter-form input:focus {
+            border-color: #6366f1;
+            background: #fff;
+        }
+        .filter-sep {
+            font-size: 12px;
+            color: #94a3b8;
+            padding-bottom: 7px;
+        }
+        .btn-history-search {
+            background: linear-gradient(135deg,#6366f1,#8b5cf6);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: opacity .2s;
+        }
+        .btn-history-search:hover { opacity: .88; }
+        .btn-history-clear {
+            background: #f1f5f9;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background .2s;
+        }
+        .btn-history-clear:hover { background: #e2e8f0; }
+        .history-results-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 1px 6px rgba(0,0,0,.08);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+        .history-results-header {
+            padding: 16px 22px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .history-results-header .htitle {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        .history-results-header .hcount {
+            font-size: 13px;
+            color: #64748b;
+            background: #f1f5f9;
+            border-radius: 20px;
+            padding: 3px 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>Vehicle Yard</h2>
+            <p>Management System</p>
+        </div>
+        <div class="sidebar-user">
+            <div class="user-avatar">MU</div>
+            <div class="user-info">
+                <h3>Manager User</h3>
+                <p>Manager</p>
+            </div>
+        </div>
+        <ul class="nav-links">
+            <li class="nav-item"><a th:href="@{/manager}" class="nav-link"><i class="fas fa-th-large"></i> Dashboard</a>
+            </li>
+            <li class="nav-item"><a th:href="@{/manager/inventory}" class="nav-link"><i class="fas fa-car"></i> Vehicle
+                    Inventory</a></li>
+            <li class="nav-item"><a th:href="@{/manager/repair}" class="nav-link"><i class="fas fa-tools"></i> Repair
+                    &amp; Maintenance</a></li>
+            <li class="nav-item"><a th:href="@{/manager/attendance}" class="nav-link active"><i
+                        class="fas fa-clipboard-check"></i> Attendance</a></li>
+            <li class="nav-item"><a th:href="@{/manager/sales}" class="nav-link"><i class="fas fa-shopping-cart"></i>
+                    Sales Management</a></li>
+            <li class="nav-item"><a th:href="@{/manager/reports}" class="nav-link"><i class="fas fa-file-alt"></i>
+                    Reports</a></li>
+        </ul>
+        <div class="sidebar-footer"><a th:href="@{/login}" class="nav-link"><i class="fas fa-sign-out-alt"></i>
+                Logout</a></div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main-content">
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Attendance Management</h1>
+                <p>Track employee attendance using the state-machine check-in / check-out system</p>
+            </div>
+            <a th:href="@{/manager/attendance/download}" class="btn btn-primary" style="text-decoration:none;white-space:nowrap;">
+                <i class="fas fa-file-pdf"></i> Download Report
+            </a>
+        </div>
+
+        <!-- Error flash banner -->
+        <div class="error-banner" th:if="${errorMsg != null and !#strings.isEmpty(errorMsg)}">
+            <i class="fas fa-exclamation-circle"></i>
+            <span th:text="${errorMsg}">Error message here.</span>
+        </div>
+
+        <!-- Stat Cards -->
+        <div class="metrics-grid metrics-grid-4" style="margin-bottom:24px;">
+            <div class="metric-card">
+                <div class="metric-info">
+                    <h3>Total Staff</h3>
+                    <div class="metric-value" th:text="${totalStaff != null ? totalStaff : 0}">0</div>
+                </div>
+                <div class="metric-icon icon-blue"><i class="fas fa-users"></i></div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-info">
+                    <h3 style="color:#10b981;">Present</h3>
+                    <div class="metric-value" th:text="${presentCount != null ? presentCount : 0}">0</div>
+                </div>
+                <div class="metric-icon icon-green"><i class="fas fa-clock"></i></div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-info">
+                    <h3 style="color:#ef4444;">Absent</h3>
+                    <div class="metric-value" th:text="${absentCount != null ? absentCount : 0}">0</div>
+                </div>
+                <div class="metric-icon icon-red"><i class="fas fa-calendar-times"></i></div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-info">
+                    <h3 style="color:#6b7280;">Off Day</h3>
+                    <div class="metric-value" th:text="${offDayCount != null ? offDayCount : 0}">0</div>
+                </div>
+                <div class="metric-icon icon-blue"><i class="fas fa-umbrella-beach"></i></div>
+            </div>
+        </div>
+
+        <!-- Weekly Attendance Chart -->
+        <div class="chart-card" style="margin-bottom:24px;">
+            <div class="chart-title">Weekly Attendance Trends</div>
+            <div class="chart-container"><canvas id="attendanceChart"></canvas></div>
+        </div>
+
+        <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+        <!--  Attendance History Search                                     -->
+        <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+        <div class="history-filter-card">
+            <div class="filter-title">
+                <i class="fas fa-history" style="color:#6366f1;"></i> Attendance History Search
+            </div>
+            <form class="history-filter-form" action="/manager/attendance/history" method="get" id="historyForm">
+
+                <!-- Month shortcut -->
+                <div class="fgroup">
+                    <label><i class="fas fa-calendar-alt"></i> By Month</label>
+                    <input type="month" name="month" id="monthPicker"
+                           th:value="${historyMonth != null ? historyMonth : ''}"
+                           placeholder="YYYY-MM"
+                           title="Pick a month to auto-fill the date range">
+                </div>
+
+                <div class="filter-sep" style="padding-bottom:12px;">-- or custom range --</div>
+
+                <!-- From date -->
+                <div class="fgroup">
+                    <label>From Date</label>
+                    <input type="date" name="fromDate" id="fromDate"
+                           th:value="${historyFrom != null and historyMonth == '' ? historyFrom : ''}">
+                </div>
+
+                <!-- To date -->
+                <div class="fgroup">
+                    <label>To Date</label>
+                    <input type="date" name="toDate" id="toDate"
+                           th:value="${historyTo != null and historyMonth == '' ? historyTo : ''}">
+                </div>
+
+                <button type="submit" class="btn-history-search">
+                    <i class="fas fa-search"></i> Search
+                </button>
+                <a href="/manager/attendance" class="btn-history-clear">
+                    <i class="fas fa-times"></i> Clear
+                </a>
+            </form>
+        </div>
+
+        <!-- History Results Table (only shown after a search) -->
+        <div class="history-results-card" th:if="${historyRecords != null}">
+            <div class="history-results-header">
+                <span class="htitle"><i class="fas fa-list-alt" style="color:#6366f1;margin-right:6px;"></i>History Results</span>
+                <span class="hcount"
+                      th:text="${historyRecords.size()} + ' record(s) -- ' + historyFrom + ' â†’ ' + historyTo">
+                </span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Employee</th>
+                        <th>Role</th>
+                        <th>Check-In</th>
+                        <th>Check-Out</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="rec : ${historyRecords}">
+                        <td style="font-weight:600;white-space:nowrap;" th:text="${rec.date}">--</td>
+                        <td>
+                            <div style="font-weight:600;" th:text="${rec.user != null ? rec.user.username : '--'}">--</div>
+                            <div style="font-size:12px;color:var(--text-muted);" th:text="${rec.user != null ? rec.user.email : ''}"></div>
+                        </td>
+                        <td th:text="${rec.user != null ? rec.user.role : '--'}">--</td>
+                        <td>
+                            <span th:if="${rec.checkInTime != null}" th:text="${rec.checkInTime}">--</span>
+                            <span th:unless="${rec.checkInTime != null}" style="color:var(--text-muted);">--</span>
+                        </td>
+                        <td>
+                            <span th:if="${rec.checkOutTime != null}" th:text="${rec.checkOutTime}">--</span>
+                            <span th:unless="${rec.checkOutTime != null}" style="color:var(--text-muted);">--</span>
+                        </td>
+                        <td>
+                            <span th:if="${rec.status == 'PRESENT'}"   class="badge badge-present">Present</span>
+                            <span th:if="${rec.status == 'ABSENT'}"    class="badge badge-absent">Absent</span>
+                            <span th:if="${rec.status == 'OFF_DAY'}"   class="badge badge-offday"><i class="fas fa-umbrella-beach"></i> Off Day</span>
+                            <span th:if="${rec.status == 'HALF_DAY'}"  class="badge badge-halfday"><i class="fas fa-adjust"></i> Half Day</span>
+                            <span th:if="${rec.status == 'UNDONE'}"    style="color:var(--text-muted);font-size:13px;">Undone</span>
+                        </td>
+                    </tr>
+                    <tr th:if="${historyRecords.empty}">
+                        <td colspan="6" style="text-align:center;color:var(--text-muted);padding:32px;">
+                            <i class="fas fa-inbox" style="font-size:24px;display:block;margin-bottom:8px;"></i>
+                            No attendance records found for this period.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Today's Attendance Table -->
+        <div class="table-card">
+            <div class="table-header-bar">
+                <div class="table-title">Today's Attendance</div>
+                <span style="font-size:13px;color:var(--text-muted);" th:text="${today}"></span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Employee</th>
+                        <th>Role</th>
+                        <th>Check-In</th>
+                        <th>Check-Out</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="emp : ${staff}">
+                        <td>
+                            <div style="font-weight:600;" th:text="${emp.username}">Name</div>
+                            <div style="font-size:12px;color:var(--text-muted);" th:text="${emp.email}">email</div>
+                        </td>
+                        <td th:text="${emp.role}">Role</td>
+
+                        <!-- Check-In time -->
+                        <td>
+                            <span
+                                th:if="${todayRecordMap[emp.id] != null and todayRecordMap[emp.id].checkInTime != null}"
+                                th:text="${todayRecordMap[emp.id].checkInTime}">--</span>
+                            <span
+                                th:unless="${todayRecordMap[emp.id] != null and todayRecordMap[emp.id].checkInTime != null}"
+                                style="color:var(--text-muted);">--</span>
+                        </td>
+
+                        <!-- Check-Out time -->
+                        <td>
+                            <span
+                                th:if="${todayRecordMap[emp.id] != null and todayRecordMap[emp.id].checkOutTime != null}"
+                                th:text="${todayRecordMap[emp.id].checkOutTime}">--</span>
+                            <span
+                                th:unless="${todayRecordMap[emp.id] != null and todayRecordMap[emp.id].checkOutTime != null}"
+                                style="color:var(--text-muted);">--</span>
+                        </td>
+
+                        <!-- Status badge -->
+                        <td>
+                            <span th:if="${todayStatusMap[emp.id] == null or todayStatusMap[emp.id] == 'UNDONE'}"
+                                style="color:var(--text-muted);font-size:13px;">Not marked</span>
+                            <span
+                                th:if="${todayStatusMap[emp.id] == 'PRESENT' and (todayRecordMap[emp.id] == null or todayRecordMap[emp.id].checkOutTime == null)}"
+                                class="badge badge-present">Checked In</span>
+                            <span
+                                th:if="${todayStatusMap[emp.id] == 'PRESENT' and todayRecordMap[emp.id] != null and todayRecordMap[emp.id].checkOutTime != null}"
+                                class="badge badge-done"><i class="fas fa-check"></i> Done</span>
+                            <span th:if="${todayStatusMap[emp.id] == 'ABSENT'}" class="badge badge-absent">Absent</span>
+                            <span th:if="${todayStatusMap[emp.id] == 'OFF_DAY'}" class="badge badge-offday"><i
+                                    class="fas fa-umbrella-beach"></i> Off Day</span>
+                            <span th:if="${todayStatusMap[emp.id] == 'HALF_DAY'}" class="badge badge-halfday"><i
+                                    class="fas fa-adjust"></i> Half Day</span>
+                        </td>
+
+                        <!-- Action buttons -->
+                        <td>
+                            <div class="att-actions">
+                                <!-- Scenario A: No record yet or Undone -->
+                                <th:block th:if="${todayStatusMap[emp.id] == null or todayStatusMap[emp.id] == 'UNDONE'}">
+                                    <form th:action="@{'/manager/attendance/checkin/' + ${emp.id}}" method="post"
+                                        style="display:inline;">
+                                        <button type="submit" class="btn btn-sm btn-checkin"
+                                            title="Record check-in time now">
+                                            <i class="fas fa-sign-in-alt"></i> Check In
+                                        </button>
+                                    </form>
+                                    <form th:action="@{'/manager/attendance/offday/' + ${emp.id}}" method="post"
+                                        style="display:inline;">
+                                        <button type="submit" class="btn btn-sm btn-offday" title="Mark as Off Day">
+                                            <i class="fas fa-umbrella-beach"></i> Off Day
+                                        </button>
+                                    </form>
+                                </th:block>
+
+                                <!-- Scenario B: Checked in, no checkout yet -->
+                                <th:block
+                                    th:if="${todayStatusMap[emp.id] == 'PRESENT' and (todayRecordMap[emp.id] == null or todayRecordMap[emp.id].checkOutTime == null)}">
+                                    <form th:action="@{'/manager/attendance/checkout/' + ${emp.id}}" method="post"
+                                        style="display:inline;">
+                                        <button type="submit" class="btn btn-sm btn-checkout"
+                                            title="Record check-out time now">
+                                            <i class="fas fa-sign-out-alt"></i> Check Out
+                                        </button>
+                                    </form>
+                                    <form th:action="@{'/manager/attendance/clear/' + ${emp.id}}" method="post"
+                                        style="display:inline;" onsubmit="return confirm('Clear this attendance record?');">
+                                        <button type="submit" class="btn btn-sm" style="background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca;" title="Undo check-in">
+                                            <i class="fas fa-undo"></i> Undo
+                                        </button>
+                                    </form>
+                                </th:block>
+
+                                <!-- Scenario C: OFF_DAY or fully done -- show stat and Undo -->
+                                <th:block th:if="${todayStatusMap[emp.id] == 'OFF_DAY' or todayStatusMap[emp.id] == 'HALF_DAY' or (todayStatusMap[emp.id] == 'PRESENT' and todayRecordMap[emp.id] != null and todayRecordMap[emp.id].checkOutTime != null)}">
+                                    <span th:if="${todayStatusMap[emp.id] == 'OFF_DAY'}"
+                                        style="color:var(--text-muted);font-size:12px; margin-right: 8px;">-- locked --</span>
+                                    <span
+                                        th:if="${todayStatusMap[emp.id] == 'PRESENT' and todayRecordMap[emp.id] != null and todayRecordMap[emp.id].checkOutTime != null}"
+                                        style="color:#10b981;font-size:12px; margin-right: 8px;"><i class="fas fa-check-circle"></i>
+                                        Complete</span>
+                                    <span th:if="${todayStatusMap[emp.id] == 'HALF_DAY'}"
+                                        style="color:#92400e;font-size:12px; margin-right: 8px;"><i class="fas fa-adjust"></i> Half Day</span>
+                                    
+                                    <form th:action="@{'/manager/attendance/clear/' + ${emp.id}}" method="post"
+                                        style="display:inline;" onsubmit="return confirm('Clear this attendance record?');">
+                                        <button type="submit" class="btn btn-sm" style="background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; padding: 2px 8px; font-size: 11px;" title="Undo attendance record">
+                                            <i class="fas fa-undo"></i> Undo
+                                        </button>
+                                    </form>
+                                </th:block>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr th:if="${staff == null or staff.empty}">
+                        <td colspan="6" style="text-align:center;color:var(--text-muted);padding:32px;">No staff records
+                            found.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script th:inline="javascript">
+        const weekLabels = /*[[${weekDates}]]*/['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        const weekPresent = /*[[${weekPresent}]]*/[0, 0, 0, 0, 0, 0, 0];
+        const weekAbsent = /*[[${weekAbsent}]]*/[0, 0, 0, 0, 0, 0, 0];
+        const weekOffDay = /*[[${weekOffDay}]]*/[0, 0, 0, 0, 0, 0, 0];
+
+        new Chart(document.getElementById('attendanceChart'), {
+            type: 'bar',
+            data: {
+                labels: weekLabels,
+                datasets: [
+                    { label: 'Present', data: weekPresent, backgroundColor: '#10b981' },
+                    { label: 'Absent', data: weekAbsent, backgroundColor: '#ef4444' },
+                    { label: 'Off Day', data: weekOffDay, backgroundColor: '#9ca3af' }
+                ]
+            },
+            options: {
+                plugins: { legend: { position: 'bottom' } },
+                scales: {
+                    x: { stacked: false, grid: { display: false } },
+                    y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { stepSize: 1 } }
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
