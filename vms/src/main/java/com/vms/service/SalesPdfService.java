@@ -1,6 +1,6 @@
 package com.vms.service;
 
-import com.itextpdf.kernel.colors.ColorConstants;
+import com.itextpdf.kernel.colors2.ColorConstants;
 import com.itextpdf.kernel.colors.DeviceRgb;
 import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.kernel.pdf.PdfDocument;
@@ -39,7 +39,7 @@ public class SalesPdfService {
      */
     public byte[] generateSalesReport(List<Sale> sales, int totalSales,
             BigDecimal totalRevenue, int availableVehicles) {
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {// err
             PdfWriter writer = new PdfWriter(baos);
             PdfDocument pdfDoc = new PdfDocument(writer);
             pdfDoc.setDefaultPageSize(PageSize.A4.rotate()); // Landscape for wide table
