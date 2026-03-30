@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>System Logs - Admin</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>System Logs</h2>
+    <a href="/admin">🔙 Back to Dashboard</a> | <a href="/admin/users">Manage Users</a>
+
+    <hr />
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Timestamp</th>
+                <th>Type</th>
+                <th>Description</th>
+                <th>User</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="log : ${logs}">
+                <td th:text="${log.id}">1</td>
+                <td th:text="${log.timestamp}">2026-02-27T10:00:00</td>
+                <td th:text="${log.type}">LOGIN</td>
+                <td th:text="${log.description}">Description</td>
+                <td th:text="${log.user}">Admin</td>
+                <td th:text="${log.status}">SUCCESS</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(logs)}">
+                <td colspan="6" style="text-align:center;">No logs found.</td>
+            </tr>
+        </tbody>
+    </table>
+
+</body>
+
+</html>
